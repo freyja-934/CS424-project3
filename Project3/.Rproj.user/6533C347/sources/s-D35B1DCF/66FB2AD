@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "66FB2AD",
-    "lastKnownWriteTime" : 1555007736,
-    "last_content_update" : 1555007736443,
+    "lastKnownWriteTime" : 1555012552,
+    "last_content_update" : 1555012552729,
     "path" : "~/Project3/app.R",
     "project_path" : "app.R",
     "properties" : {
-        "cursorPosition" : "187,3",
-        "scrollLine" : "165"
+        "cursorPosition" : "291,34",
+        "scrollLine" : "256"
     },
     "relative_order" : 1,
     "source_on_save" : false,

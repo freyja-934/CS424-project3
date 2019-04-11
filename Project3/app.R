@@ -28,12 +28,29 @@ ui <- dashboardPage(
   ######################################## CREATE DROP DOWN MENUS IN SIDEBAR + NEW TAB CONTAINING RESOURCES ######################################## 
   dashboardSidebar(sidebarMenu(disable = FALSE, collapsed = FALSE,
                                uiOutput("nodeOutput"),
+                               uiOutput("node1Output"),
+                               uiOutput("node2Output"),
                                selectInput("pollutants", "Pollutants", pollutants_list)
                               
   )),
   ######################################## THE MAIN BODDY OF THE WEB APP ########################################
   dashboardBody(
-    leafletOutput("mymap", height = 600)
+    fluidRow(leafletOutput("mymap", height = 600)),
+    fluidRow(column(6,h4(textOutput("Node 1")),
+               tabsetPanel(
+                 tabPanel("Current",tableOutput("node1_cur")),
+                 tabPanel("24 Hours", tableOutput("node1_24")),
+                 tabPanel("7 Days",tableOutput("node1_7"))
+               )
+             ),
+             column(6,h4(textOutput("Node 2")),
+                    tabsetPanel(
+                      tabPanel("Current",tableOutput("node2_cur")),
+                      tabPanel("24 Hours", tableOutput("node2_24")),
+                      tabPanel("7 Days",tableOutput("node2_7"))
+                    )
+             )
+    )
   ))
 
 # Nodes - Column Names
@@ -91,17 +108,17 @@ server <- function(input, output) {
   intensity_path = "chemsense.si1145.visible_light_intensity "
   
   
-  getNodes <- function(path, ts){
+  getNodes <- function(path, d, h){
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="GMT")
-    int <- interval(gmtTime - hours(ts), gmtTime)
+    int <- interval(gmtTime - hours(h) - days(d), gmtTime)
     print(gmtTime)
     a = ls.observations(filters=list(project='chicago', size=50))
     c = select(subset(a, sensor_path == path | (sensor_path %in% temperature_paths) & as_datetime(timestamp) %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value')
     print(c)
     return (c)
   }
-  
+
   
   getNodesNow <- function(path){
     currentTime = Sys.time();
@@ -116,7 +133,7 @@ server <- function(input, output) {
   
   # Returns all nodes and locations of currently selected items
   getNodeLocations <- function(){
-    c <- getNodes("metsense.tsys01.temperature", 1)
+    c <- getNodes("metsense.tsys01.temperature", 0, 1)
     nodes <- unique(c$node_vsn)
     node_addresses <- subset(ls.nodes(filters=list(project='chicago')), (vsn %in% nodes))
 
@@ -127,8 +144,8 @@ server <- function(input, output) {
   }
   
   # Returns Data of current node selected
-  getNodeData<- function(vsn, ts){
-      nodes <- getNodes("metsense.tsys01.temperature", ts)
+  getNodeData<- function(vsn, d, h){
+      nodes <- getNodes("metsense.tsys01.temperature", d, h)
       return (filter(nodes, node_vsn == vsn))
   }
   
@@ -144,17 +161,98 @@ server <- function(input, output) {
                 dt)
   })  
   
+  output$node1Output <- renderUI({
+    dt <- getNodesNow("metsense.tsys01.temperature")
+    selectInput("node1Input", "Current Nodes",
+                dt)
+  })  
+  
+  output$node2Output <- renderUI({
+    dt <- getNodesNow("metsense.tsys01.temperature")
+    selectInput("node2Input", "Current Nodes",
+                dt)
+  })  
+  
+  #Node selected on map current data
   curNodeData <- reactive({
     req(input$nodeInput)
     autoInvalidate()
-    getNodeData(input$nodeInput, 1)
+    getNodeData(input$nodeInput, 0, 1)
   })
   
+  #Node selected on map last 24 hours of data
   curNodeData24 <- reactive({
     req(input$nodeInput)
     autoInvalidate()
-    getNodeData(input$nodeInput, 24)
+    getNodeData(input$nodeInput, 0, 24)
   })
+  
+  
+  #Data for node 1 selected for last 24 hours
+  node1SelectedData24 <- reactive({
+    req(input$node1Input)
+    autoInvalidate()
+    getNodeData(input$node1Input, 0, 24)
+  })
+  
+  #Data for node 2 selected for last 24 hours
+  node2SelectedData24 <- reactive({
+    req(input$node2Input)
+    autoInvalidate()
+    getNodeData(input$node2Input, 0, 24)
+  })
+  
+  #Data for node 1 selected for Current time
+  node1SelectedDataCur <- reactive({
+    req(input$node1Input)
+    autoInvalidate()
+    getNodeData(input$node1Input, 0, 1)
+  })
+  
+  #Data for node 2 selected for Current time
+  node2SelectedDataCur <- reactive({
+    req(input$node2Input)
+    autoInvalidate()
+    getNodeData(input$node2Input, 0, 1)
+  })
+  
+  #Data for node 1 selected for 7 Days
+  node1SelectedData7 <- reactive({
+    req(input$node1Input)
+    autoInvalidate()
+    getNodeData(input$node2Input, 7, 0)
+  })
+  
+  #Data for node 2 selected for 7 Days
+  node2SelectedData7 <- reactive({
+    req(input$node2Input)
+    autoInvalidate()
+    getNodeData(input$node2Input, 7, 0)
+  })
+  
+    
+  ## !!!!!!!!! Turn these into histograms !!!!!!!!!
+    output$node1_cur <- renderTable({
+      node1SelectedDataCur()
+    })
+    output$node1_24 <- renderTable({
+      node1SelectedData24()
+    })
+    output$node1_7 <- renderTable({
+      node1SelectedData7()
+    })
+    
+  ## !!!!!!!!! Turn these into histograms !!!!!!!!!
+    output$node2_cur <- renderTable({
+      node2SelectedDataCur()
+    })
+    output$node2_24 <- renderTable({
+      node2SelectedData24()
+    })
+    output$node2_7 <- renderTable({
+      node2SelectedData7()
+    })
+  
   
   
   # print(getNodes("metsense.tsys01.temperature"))
@@ -170,31 +268,24 @@ server <- function(input, output) {
    res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
    print("*** Projects ***")
 
-   # print(ls.nodes(filters=list(project='chicago')))
-   #print(names(ls.sensors(filters=list(project='chicago'))))
    output$mymap <- renderLeaflet({
-     ds <- getNodeLocations()
+     ds <- getNodeLocations()  #displays only the current nodes with information (last 1 hour)
      leaflet(ds) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
    })
    observe({
-     print(getNodes("metsense.bmp180.temperature",1))
+     print(getNodes("metsense.bmp180.temperature",0, 1))
    })
     print("here")
    
     ## Data Table I am trying to separate coordinates column ###
-    dt <- getNodeLocations()
+    dt <- getNodeLocations()$coordinates
+    
+    
+   print(dput(dt))
    
-   
-   output$distPlot <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
-      
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
-   })
+  
 }
 
 # Run the application 
