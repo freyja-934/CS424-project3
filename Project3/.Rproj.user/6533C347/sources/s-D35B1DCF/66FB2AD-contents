@@ -17,6 +17,7 @@ library(dplyr)
 library(shinydashboard)
 library(leaflet)
 library(qdapTools)
+library(data.table)
 pollutants_list = list("NO2", "Ozone", "CO", "H2S", "SO2", "PM10", "PM25", "Temperature", "Humidity", "Light")
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
@@ -181,9 +182,10 @@ server <- function(input, output) {
      print(getNodes("metsense.bmp180.temperature",1))
    })
     print("here")
-   dta <- getNodeLocations()
-   ans <- as.data.frame(unlist(dta$coordinates))
-   print(ans)
+   
+    ## Data Table I am trying to separate coordinates column ###
+    dt <- getNodeLocations()
+   
    
    output$distPlot <- renderPlot({
       # generate bins based on input$bins from ui.R
