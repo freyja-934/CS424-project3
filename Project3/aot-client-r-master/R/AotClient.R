@@ -225,7 +225,11 @@ stat.sensor <- function (path, filters = NULL) {
 #' @export
 ls.observations <- function (filters = NULL) {
   # build url, send request, get response
-  url <- "https://api.arrayofthings.org/api/observations"
+
+  url <- "https://api.arrayofthings.org/api/observations?node_vsn=092"
+
+
+
   resp <- send_request(url, filters)
 
   # build data frame
@@ -241,3 +245,4 @@ ls.observations <- function (filters = NULL) {
   # return data frame
   return(df)
 }
+
