@@ -91,7 +91,7 @@ server <- function(input, output) {
     # when input$n changes.
     print("Validated")
   })
-
+  
   getNodeData2 <- function(vsn, d,h){
     url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
     url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&size=50000", sep="")
@@ -101,8 +101,8 @@ server <- function(input, output) {
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
-    path_list = getPollutantPaths()
-    path_list = getPollutantPaths()
+    path_list = pollutantPaths()
+    path_list = pollutantPaths()
     print(u)
     return(select(subset(u, is.element(sensor_path, path_list) & as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value'))
   }
@@ -141,7 +141,7 @@ server <- function(input, output) {
   so2_IsSelected = FALSE
   pm10_IsSelected = FALSE
   pm25_IsSelected = FALSE
-  tempertature_IsSelected = FALSE
+  tempertature_IsSelected = TRUE
   humidity_IsSelected = FALSE
   intensity_IsSelected = FALSE
   
@@ -160,6 +160,10 @@ server <- function(input, output) {
     return(pathList)
   }
   
+  pollutantPaths <- reactive({
+    getPollutantPaths()
+  })
+  
   getPollutantPaths()
   #& as_datetime(timestamp) %within% int
 
@@ -176,7 +180,7 @@ server <- function(input, output) {
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
-    path_list = getPollutantPaths()
+    path_list = pollutantPaths()
 
     c = select(subset(theAData, is.element(sensor_path, path_list) & as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value')
     return (c)
@@ -217,11 +221,11 @@ server <- function(input, output) {
   })
   # Returns Data of current node selected
   getNodeData<- function(vsn, d, h){
-    currentTime = Sys.time();
-    gmtTime = as.POSIXlt(currentTime, tz="UTC")
-    int <- interval(gmtTime - hours(h) - days(d), gmtTime)
-    path_list = getPollutantPaths()
-      path_list = getPollutantPaths()
+      currentTime = Sys.time();
+      gmtTime = as.POSIXlt(currentTime, tz="UTC")
+      int <- interval(gmtTime - hours(h) - days(d), gmtTime)
+      path_list = pollutantPaths()
+      path_list = pollutantPaths()
       nodes <- ls.observations(filters=list(project='chicago', node_vsn='004', size=5000))
       return (select(subset(nodes, is.element(sensor_path, path_list) & as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value'))
   }
@@ -307,7 +311,7 @@ server <- function(input, output) {
     getNodeData2(input$node2Input,7,0)
   })
   
-    
+
   ## !!!!!!!!! Turn these into histograms !!!!!!!!!
     output$node1_cur <- renderPlot({
       df <- node1SelectedDataCur()
@@ -395,8 +399,6 @@ server <- function(input, output) {
      
    })
   
-
-   
   
 }
 
