@@ -10,6 +10,7 @@
 
 
 library(shiny)
+library(DT)
 library(AotClient) 
 library(darksky)
 library("ropenaq")
@@ -26,7 +27,7 @@ pollutants_list = list("NO2", "Ozone", "CO", "H2S", "SO2", "PM10", "PM25", "Temp
 ui <- dashboardPage(
   ################################################################################ THE COLOR AND LENGTH OF THE TITLE FOR THE SIDEBAR ################################################################################
   skin = "yellow",
-  dashboardHeader(title = "CS 424 PROJECT 2", titleWidth = 350 ),
+  dashboardHeader(title = "CS 424 PROJECT 3-Group 2", titleWidth = 350 ),
   
   ######################################## CREATE DROP DOWN MENUS IN SIDEBAR + NEW TAB CONTAINING RESOURCES ######################################## 
   dashboardSidebar(sidebarMenu(disable = FALSE, collapsed = FALSE,  style = "margin-top:500px",
@@ -57,17 +58,18 @@ ui <- dashboardPage(
     tabItems(
       tabItem(
         tabName = "map",
-        fluidRow(column(6,
-                    leafletOutput("mymap", height = 600)
-                    ),
-             column(6, h4(textOutput("Node Data")),
+        fluidRow(column(12,
+                    leafletOutput("mymap", height = 1200)
+                    )),
+        fluidRow(
+             column(12, h4(textOutput("Node Data")),
                     tabsetPanel(type = "tabs",
                       tabPanel("Current",plotOutput("node_data")),
                       tabPanel("24 Hours", plotOutput("node_data24")),
                       tabPanel("7 Days",plotOutput("node_data7")),
                       position = "left"
-                    ))
-             )),
+                    )))
+             ),
       tabItem(
         tabName = "compare",
         fluidRow(column(6,h4(textOutput("Node 1")),
@@ -136,23 +138,21 @@ ui <- dashboardPage(
     ),
     tabItem(
       tabName = "compare2",
-      fluidRow(
-               box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("NO2_1")),
-               box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,tableOutput("OZONE_1")),
-               box( title = "NODE 1 - CO", solidHeader = TRUE, status = "primary", width = 2,tableOutput("CO_1")),
-               box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary", width = 2,tableOutput("H2S_1")),
-               box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("SO2_1")),
-               box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM10_1")),
-               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM25_1"))),
+               box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("NO2_1")),
+               box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_1")),
+               box( title = "NODE 1 - CO", solidHeader = TRUE, status = "primary",width = 2,dataTableOutput("CO_1")),
+               box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary",width = 2,dataTableOutput("H2S_1")),
+               box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("SO2_1")),
+               box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM10_1")),
+               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM25_1")),
       
-      fluidRow(
-               box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("NO2_2")),
-               box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,tableOutput("OZONE_2")),
-               box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,tableOutput("CO_2")),
-               box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,tableOutput("H2S_2")),
-               box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("SO2_2")),
-               box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM10_2")),
-               box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM25_2")))
+               box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary" ,width = 2, dataTableOutput("NO2_2")),
+               box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_2")),
+               box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("CO_2")),
+               box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("H2S_2")),
+               box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("SO2_2")),
+               box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM10_2")),
+               box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM25_2"))
     )
     )
   ))
@@ -395,42 +395,207 @@ server <- function(input, output,session) {
     return(select(subset(u, as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value'))
   }
   
+  #########################   first node
+  print(ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000)))
   
-  output$NO2_1 <- renderTable({ 
+  output$NO2_1 <- DT::renderDataTable(
+    DT::datatable({ 
     req(input$node1Input) 
-    getData(input$node1Input, 0, 0, no2_path)
-    
-  })
-  output$OZONE_1 <- renderTable({ 
-    req(input$node1Input)
-    getData(input$node1Input, 0,1, ozone_path)
-  })
-  output$CO_1 <- renderTable({
-    req(input$node1Input)
-    getData(input$node1Input, 0,1, co_path) 
-  })
-  output$H2S_1 <- renderTable({
-    req(input$node1Input)
-    getData(input$node1Input, 0,1, h2s_path) 
-  })
-  output$SO2_1 <- renderTable({ 
-    req(input$node1Input)
-    getData(input$node1Input, 0,1, so2_path)
-  })
-  output$PM10_1 <- renderTable({
-    
-  })
-  output$PM25_1 <- renderTable({
-    
-  })
+    data <- getData(input$node1Input, 0, 1, no2_path)
+    str(data)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node1Input)
+    }
+    else{
+    data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE, width = 200 )))
   
-  output$NO2_2 <- renderTable({ })
-  output$OZONE_2 <- renderTable({ })
-  output$CO_2 <- renderTable({ })
-  output$H2S_2 <- renderTable({ })
-  output$SO2_2 <- renderTable({ })
-  output$PM10_2 <- renderTable({ })
-  output$PM25_2 <- renderTable({ })
+  output$OZONE_1 <- DT::renderDataTable( 
+    DT::datatable({ 
+    req(input$node1Input)
+    data <- getData(input$node1Input, 0,1, ozone_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node1Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$CO_1 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node1Input)
+    data <- getData(input$node1Input, 0,1, co_path) 
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node1Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$H2S_1 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node1Input)
+    data <- getData(input$node1Input, 0,1, h2s_path) 
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node1Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$SO2_1 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node1Input)
+    data <- getData(input$node1Input, 0,1, so2_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node1Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$PM10_1 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node1Input)
+    data <- getData(input$node1Input, 0,1, pm10_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node1Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$PM25_1 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node1Input)
+    data <- getData(input$node1Input, 0,1, pm25_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node1Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  ########################### second node
+  
+  output$NO2_2 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node2Input) 
+    data <- getData(input$node2Input, 0, 1, no2_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node2Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$OZONE_2 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node2Input)
+    data <- getData(input$node2Input, 0,1, ozone_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node2Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$CO_2 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node2Input)
+    data <- getData(input$node2Input, 0,1, co_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node2Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$H2S_2 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node2Input)
+    data <- getData(input$node2Input, 0,1, h2s_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node2Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$SO2_2 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node2Input)
+    data <- getData(input$node2Input, 0,1, so2_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node2Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$PM10_2 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node2Input)
+    data <- getData(input$node2Input, 0,1, pm10_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node2Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  
+  output$PM25_2 <- DT::renderDataTable(
+    DT::datatable({ 
+    req(input$node2Input)
+    data <- getData(input$node2Input, 0,1, pm25_path)
+    Timestamp <- data$timestamp
+    Value <- data$value
+    data <- cbind(Timestamp,Value)
+    if(length(data) == 0 ){
+      stop(paste("No data avaliavle for node: "),input$node2Input)
+    }
+    else{
+      data}
+  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
   
   getPollutantPaths <- function(){
     pathList = list()
@@ -439,10 +604,10 @@ server <- function(input, output,session) {
     if(co_IsSelected()){pathList = c(pathList, co_path)}
     if(h2s_IsSelected()){pathList = c(pathList, h2s_path)}
     if(so2_IsSelected()){pathList = c(pathList, so2_path)}
-    if(pm10_IsSelected()){pathList = c(pathList, pm10_paths)}
-    if(pm25_IsSelected()){pathList = c(pathList, pm25_paths)}
-    if(tempertature_IsSelected()){pathList = c(pathList, temperature_paths)}
-    if(humidity_IsSelected()){pathList = c(pathList, humidity_paths)}
+    if(pm10_IsSelected()){pathList = c(pathList, pm10_path)}
+    if(pm25_IsSelected()){pathList = c(pathList, pm25_path)}
+    if(tempertature_IsSelected()){pathList = c(pathList, temperature_path)}
+    if(humidity_IsSelected()){pathList = c(pathList, humidity_path)}
     if(intensity_IsSelected()){pathList = c(pathList, intensity_path)}
     return(pathList)
   }
@@ -849,7 +1014,7 @@ server <- function(input, output,session) {
       intensity_data <- getData(input$node2Input, 1, 0, intensity_path)
       
       if(length(no2_data) == 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0){
-        stop(paste("No data avaliavle for node: "),input$node1Input)
+        stop(paste("No data avaliavle for node: "),input$node2Input)
       }
       else{
         no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
