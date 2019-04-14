@@ -137,22 +137,22 @@ ui <- dashboardPage(
     tabItem(
       tabName = "compare2",
       fluidRow(
-               box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("NO2_1", height = 400)),
-               box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,plotOutput("OZONE_1", height = 400)),
-               box( title = "NODE 1 - CO", solidHeader = TRUE, status = "primary", width = 2,plotOutput("CO_1", height = 400)),
-               box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary", width = 2,plotOutput("H2S_1", height = 400)),
-               box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("SO2_1", height = 400)),
-               box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM10_1", height = 400)),
-               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM25_1", height = 400))),
+               box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("NO2_1")),
+               box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,tableOutput("OZONE_1")),
+               box( title = "NODE 1 - CO", solidHeader = TRUE, status = "primary", width = 2,tableOutput("CO_1")),
+               box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary", width = 2,tableOutput("H2S_1")),
+               box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("SO2_1")),
+               box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM10_1")),
+               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM25_1"))),
       
       fluidRow(
-               box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("NO2_2", height = 400)),
-               box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,plotOutput("OZONE_2", height = 400)),
-               box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,plotOutput("CO_2", height = 400)),
-               box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,plotOutput("H2S_2", height = 400)),
-               box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("SO2_2", height = 400)),
-               box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM10_2", height = 400)),
-               box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM25_2", height = 400)))
+               box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("NO2_2")),
+               box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,tableOutput("OZONE_2")),
+               box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,tableOutput("CO_2")),
+               box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,tableOutput("H2S_2")),
+               box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,tableOutput("SO2_2")),
+               box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM10_2")),
+               box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 2,tableOutput("PM25_2")))
     )
     )
   ))
@@ -211,21 +211,7 @@ server <- function(input, output,session) {
     
   })
   
-  output$NO2_1 <- renderPlot({ })
-  output$OZONE_1 <- renderPlot({ })
-  output$CO_1 <- renderPlot({ })
-  output$H2S_1 <- renderPlot({ })
-  output$SO2_1 <- renderPlot({ })
-  output$PM10_1 <- renderPlot({ })
-  output$PM25_1 <- renderPlot({ })
-  
-  output$NO2_2 <- renderPlot({ })
-  output$OZONE_2 <- renderPlot({ })
-  output$CO_2 <- renderPlot({ })
-  output$H2S_2 <- renderPlot({ })
-  output$SO2_2 <- renderPlot({ })
-  output$PM10_2 <- renderPlot({ })
-  output$PM25_2 <- renderPlot({ })
+
   
   
   getNodeData2 <- function(vsn, d,h){
@@ -365,9 +351,45 @@ server <- function(input, output,session) {
   }
   
   
+  output$NO2_1 <- renderTable({ 
+    req(input$node1Input) 
+    getData(input$node1Input, 0, 0, no2_path)
+    
+  })
+  output$OZONE_1 <- renderTable({ 
+    req(input$node1Input)
+    getData(input$node1Input, 0,1, ozone_path)
+  })
+  output$CO_1 <- renderTable({
+    req(input$node1Input)
+    getData(input$node1Input, 0,1, co_path) 
+  })
+  output$H2S_1 <- renderTable({
+    req(input$node1Input)
+    getData(input$node1Input, 0,1, h2s_path) 
+  })
+  output$SO2_1 <- renderTable({ 
+    req(input$node1Input)
+    getData(input$node1Input, 0,1, so2_path)
+  })
+  output$PM10_1 <- renderTable({
+    
+  })
+  output$PM25_1 <- renderTable({
+    
+  })
+  
+  output$NO2_2 <- renderTable({ })
+  output$OZONE_2 <- renderTable({ })
+  output$CO_2 <- renderTable({ })
+  output$H2S_2 <- renderTable({ })
+  output$SO2_2 <- renderTable({ })
+  output$PM10_2 <- renderTable({ })
+  output$PM25_2 <- renderTable({ })
+  
   getPollutantPaths <- function(){
     pathList = list()
-    if(no2_IsSelected){pathList = c(pathList, no2_path)}
+    if(input$NO2){pathList = c(pathList, no2_path)}
     if(ozone_IsSelected){pathList = c(pathList, ozone_path)}
     if(co_IsSelected){pathList = c(pathList, co_path)}
     if(h2s_IsSelected){pathList = c(pathList, h2s_path)}
@@ -401,7 +423,7 @@ server <- function(input, output,session) {
     getPollutantPaths()
   })
   
-  getPollutantPaths()
+
   #& as_datetime(timestamp) %within% int
 
  
@@ -600,7 +622,7 @@ server <- function(input, output,session) {
         myplot
       }
     })
-    output$node1_7 <- renderTable({
+    output$node1_7 <- renderPlot({
       req(input$node1Input)
       req(input$NO2)
       req(input$OZONE)
