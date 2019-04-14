@@ -38,6 +38,7 @@ ui <- dashboardPage(
                                menuItem("Comparison", tabName="compare", icon = icon("dashboard")),
                                menuItem("Resources", tabName="resources", icon = icon("bullet")),
                                menuItem("test", tabName="boxes", icon = icon("bullet")),
+                               menuItem("compare2", tabName="compare2", icon = icon("bullet")),
                                checkboxInput("NO2", "NO2", TRUE),
                                checkboxInput("OZONE", "OZONE", FALSE),
                                checkboxInput("CO", "CO", FALSE),
@@ -132,6 +133,26 @@ ui <- dashboardPage(
       verbatimTextOutput("INTENSITY")
       
       
+    ),
+    tabItem(
+      tabName = "compare2",
+      fluidRow(
+               box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("NO2_1", height = 400)),
+               box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,plotOutput("OZONE_1", height = 400)),
+               box( title = "NODE 1 - CO", solidHeader = TRUE, status = "primary", width = 2,plotOutput("CO_1", height = 400)),
+               box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary", width = 2,plotOutput("H2S_1", height = 400)),
+               box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("SO2_1", height = 400)),
+               box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM10_1", height = 400)),
+               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM25_1", height = 400))),
+      
+      fluidRow(
+               box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("NO2_2", height = 400)),
+               box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,plotOutput("OZONE_2", height = 400)),
+               box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,plotOutput("CO_2", height = 400)),
+               box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,plotOutput("H2S_2", height = 400)),
+               box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,plotOutput("SO2_2", height = 400)),
+               box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM10_2", height = 400)),
+               box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 2,plotOutput("PM25_2", height = 400)))
     )
     )
   ))
@@ -189,6 +210,23 @@ server <- function(input, output,session) {
     autoInvalidate()
     
   })
+  
+  output$NO2_1 <- renderPlot({ })
+  output$OZONE_1 <- renderPlot({ })
+  output$CO_1 <- renderPlot({ })
+  output$H2S_1 <- renderPlot({ })
+  output$SO2_1 <- renderPlot({ })
+  output$PM10_1 <- renderPlot({ })
+  output$PM25_1 <- renderPlot({ })
+  
+  output$NO2_2 <- renderPlot({ })
+  output$OZONE_2 <- renderPlot({ })
+  output$CO_2 <- renderPlot({ })
+  output$H2S_2 <- renderPlot({ })
+  output$SO2_2 <- renderPlot({ })
+  output$PM10_2 <- renderPlot({ })
+  output$PM25_2 <- renderPlot({ })
+  
   
   getNodeData2 <- function(vsn, d,h){
     url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
