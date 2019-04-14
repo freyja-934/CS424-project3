@@ -40,7 +40,7 @@ ui <- dashboardPage(
                                menuItem("test", tabName="boxes", icon = icon("bullet")),
                                menuItem("compare2", tabName="compare2", icon = icon("bullet")),
                                checkboxInput("NO2", "NO2", TRUE),
-                               checkboxInput("OZONE", "OZONE", FALSE),
+                               checkboxInput("OZONE", "OZONE", TRUE),
                                checkboxInput("CO", "CO", FALSE),
                                checkboxInput("H2S", "H2S", FALSE),
                                checkboxInput("SO2", "SO2", FALSE),
@@ -286,155 +286,20 @@ server <- function(input, output,session) {
   output$INTENSITY <- renderText({ input$INTENSITY })
   
   
-  observeEvent(input$NO2, {
-    print('NO2 changed')
-    no2_IsSelected <- input$NO2
-  })
-  
+
   observe({
     no2_IsSelected <- input$NO2
-    if(input$NO2 == TRUE){
-      print('NO2 is true')
-    }
-    if(input$NO2 == FALSE){
-      print('NO2 is false')
-    }
-  })
-  
-  observeEvent(input$OZONE, {
-    print('OZONE changed')
     ozone_IsSelected <- input$OZONE
-  })
-  
-  observe({
-    ozone_IsSelected <- input$OZONE
-    if(input$OZONE == TRUE){
-      print('OZONE is true')
-    }
-    if(input$OZONE == FALSE){
-      print('OZONE is false')
-    }
-  })
-  
-  observeEvent(input$CO, {
-    print('CO changed')
     co_IsSelected <- input$CO
-  })
-  
-  observe({
-    co_IsSelected <- input$CO
-    if(input$CO == TRUE){
-      print('CO is true')
-    }
-    if(input$CO == FALSE){
-      print('CO is false')
-    }
-  })
-  
-  observeEvent(input$H2S, {
-    print('H2S changed')
     h2s_IsSelected <- input$H2S
-  })
-  
-  observe({
-    h2s_IsSelected <- input$H2S
-    if(input$H2S == TRUE){
-      print('H2S is true')
-    }
-    if(input$H2S == FALSE){
-      print('H2S is false')
-    }
-  })
-  
-  observeEvent(input$SO2, {
-    print('SO2 changed')
     so2_IsSelected <- input$SO2
-  })
-  
-  observe({
-    so2_IsSelected <- input$SO2
-    if(input$SO2 == TRUE){
-      print('SO2 is true')
-    }
-    if(input$SO2 == FALSE){
-      print('SO2 is false')
-    }
-  })
-  
-  observeEvent(input$PM10, {
-    print('PM10 changed')
     pm10_IsSelected <- input$PM10
-  })
-  
-  observe({
-    pm10_IsSelected <- input$PM10
-    if(input$PM10 == TRUE){
-      print('PM10 is true')
-    }
-    if(input$PM10 == FALSE){
-      print('PM10 is false')
-    }
-  })
-  
-  observeEvent(input$PM25, {
-    print('PM25 changed')
     pm25_IsSelected <- input$PM25
-  })
-  
-  observe({
-    pm25_IsSelected <- input$PM25
-    if(input$PM25 == TRUE){
-      print('PM25 is true')
-    }
-    if(input$PM25 == FALSE){
-      print('PM25 is false')
-    }
-  })
-  
-  observeEvent(input$TEMPERATURE, {
-    print('TEMPERATURE changed')
     tempertature_IsSelected <- input$TEMPERATURE
-  })
-  
-  observe({
-    tempertature_IsSelected <- input$TEMPERATURE
-    if(input$TEMPERATURE == TRUE){
-      print('TEMPERATURE is true')
-    }
-    if(input$TEMPERATURE == FALSE){
-      print('TEMPERATURE is false')
-    }
-  })
-  
-  observeEvent(input$HUMIDITY, {
-    print('HUMIDITY changed')
     humidity_IsSelected <- input$HUMIDITY
-  })
-  
-  observe({
-    humidity_IsSelected <- input$HUMIDITY
-    if(input$HUMIDITY == TRUE){
-      print('HUMIDITY is true')
-    }
-    if(input$HUMIDITY == FALSE){
-      print('HUMIDITY is false')
-    }
-  })
-  
-  observeEvent(input$INTENSITY, {
-    print('INTENSITY changed')
     intensity_IsSelected <- input$INTENSITY
   })
   
-  observe({
-    intensity_IsSelected <- input$INTENSITY
-    if(input$INTENSITY == TRUE){
-      print('INTENSITY is true')
-    }
-    if(input$INTENSITY == FALSE){
-      print('INTENSITY is false')
-    }
-  })
   
   # no2_IsSelected <- reactive(input$NO2)
   # ozone_IsSelected <- reactive(input$OZONE)
@@ -616,6 +481,10 @@ server <- function(input, output,session) {
   ## !!!!!!!!! Turn these into histograms !!!!!!!!!
     output$node1_cur <- renderPlot({
       req(input$node1Input)
+      
+      req(input$NO2)
+    
+
       no2_data <- getData(input$node1Input, 0, 1, no2_path)
       co_data <- getData(input$node1Input, 0, 1, co_path)
       h2s_data <- getData(input$node1Input, 0, 1, h2s_path)
@@ -669,6 +538,17 @@ server <- function(input, output,session) {
     })
     output$node1_24 <- renderPlot({
       req(input$node1Input)
+      req(input$NO2)
+      req(input$OZONE)
+      req(input$CO)
+      req(input$H2S)
+      req(input$SO2)
+      req(input$PM10)
+      req(input$PM25)
+      req(input$TEMPERATURE)
+      req(input$HUMIDITY)
+      req(input$INTENSITY)
+      
       no2_data <- getData(input$node1Input, 1, 0, no2_path)
       co_data <- getData(input$node1Input, 1, 0, co_path)
       h2s_data <- getData(input$node1Input, 1, 0, h2s_path)
@@ -722,6 +602,17 @@ server <- function(input, output,session) {
     })
     output$node1_7 <- renderTable({
       req(input$node1Input)
+      req(input$NO2)
+      req(input$OZONE)
+      req(input$CO)
+      req(input$H2S)
+      req(input$SO2)
+      req(input$PM10)
+      req(input$PM25)
+      req(input$TEMPERATURE)
+      req(input$HUMIDITY)
+      req(input$INTENSITY)
+      
       no2_data <- getData(input$node1Input, 7, 0, no2_path)
       co_data <- getData(input$node1Input, 7, 0, co_path)
       h2s_data <- getData(input$node1Input, 7, 0, h2s_path)
@@ -779,6 +670,17 @@ server <- function(input, output,session) {
     output$node2_cur <- renderPlot({
       
       req(input$node2Input)
+      req(input$NO2)
+      req(input$OZONE)
+      req(input$CO)
+      req(input$H2S)
+      req(input$SO2)
+      req(input$PM10)
+      req(input$PM25)
+      req(input$TEMPERATURE)
+      req(input$HUMIDITY)
+      req(input$INTENSITY)
+      
       no2_data <- getData(input$node2Input, 0, 1, no2_path)
       co_data <- getData(input$node2Input, 0, 1, co_path)
       h2s_data <- getData(input$node2Input, 0, 1, h2s_path)
@@ -833,6 +735,17 @@ server <- function(input, output,session) {
     })
     output$node2_24 <- renderPlot({
       req(input$node2Input)
+      req(input$NO2)
+      req(input$OZONE)
+      req(input$CO)
+      req(input$H2S)
+      req(input$SO2)
+      req(input$PM10)
+      req(input$PM25)
+      req(input$TEMPERATURE)
+      req(input$HUMIDITY)
+      req(input$INTENSITY)
+      
       no2_data <- getData(input$node2Input, 1, 0, no2_path)
       co_data <- getData(input$node2Input, 1, 0, co_path)
       h2s_data <- getData(input$node2Input, 1, 0, h2s_path)
@@ -886,6 +799,17 @@ server <- function(input, output,session) {
     })
     output$node2_7 <- renderPlot({
       req(input$node2Input)
+      req(input$NO2)
+      req(input$OZONE)
+      req(input$CO)
+      req(input$H2S)
+      req(input$SO2)
+      req(input$PM10)
+      req(input$PM25)
+      req(input$TEMPERATURE)
+      req(input$HUMIDITY)
+      req(input$INTENSITY)
+      
       no2_data <- getData(input$node2Input, 7, 0, no2_path)
       co_data <- getData(input$node2Input, 7, 0, co_path)
       h2s_data <- getData(input$node2Input, 7, 0, h2s_path)
@@ -954,6 +878,16 @@ server <- function(input, output,session) {
    observeEvent(input$mymap_marker_click, { 
      p <- input$mymap_marker_click
      output$node_data <- renderPlot({
+       req(input$NO2)
+       req(input$OZONE)
+       req(input$CO)
+       req(input$H2S)
+       req(input$SO2)
+       req(input$PM10)
+       req(input$PM25)
+       req(input$TEMPERATURE)
+       req(input$HUMIDITY)
+       req(input$INTENSITY)
        
        no2_data <- getData(p$id, 0,1, no2_path)
        co_data <- getData(p$id, 0,1, co_path)
@@ -1008,6 +942,17 @@ server <- function(input, output,session) {
 
      })
      output$node_data24 <- renderPlot({
+       req(input$NO2)
+       req(input$OZONE)
+       req(input$CO)
+       req(input$H2S)
+       req(input$SO2)
+       req(input$PM10)
+       req(input$PM25)
+       req(input$TEMPERATURE)
+       req(input$HUMIDITY)
+       req(input$INTENSITY)
+       
        no2_data <- getData(p$id, 1, 0, no2_path)
        co_data <- getData(p$id, 1, 0, co_path)
        h2s_data <- getData(p$id, 1, 0, h2s_path)
@@ -1060,6 +1005,17 @@ server <- function(input, output,session) {
        }
      })
      output$node_data7 <- renderPlot({
+       req(input$NO2)
+       req(input$OZONE)
+       req(input$CO)
+       req(input$H2S)
+       req(input$SO2)
+       req(input$PM10)
+       req(input$PM25)
+       req(input$TEMPERATURE)
+       req(input$HUMIDITY)
+       req(input$INTENSITY)
+       
        no2_data <- getData(p$id, 7, 0, no2_path)
        co_data <- getData(p$id, 7, 0, co_path)
        h2s_data <- getData(p$id, 7, 0, h2s_path)
