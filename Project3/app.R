@@ -41,7 +41,7 @@ ui <- dashboardPage(
                                menuItem("compare2", tabName="compare2", icon = icon("bullet")),
                                checkboxInput("NO2", "NO2", TRUE),
                                checkboxInput("OZONE", "OZONE", TRUE),
-                               checkboxInput("CO", "CO", FALSE),
+                               checkboxInput("CO", "CO", TRUE),
                                checkboxInput("H2S", "H2S", FALSE),
                                checkboxInput("SO2", "SO2", FALSE),
                                checkboxInput("PM10", "PM10", FALSE),
@@ -271,57 +271,102 @@ server <- function(input, output,session) {
   output$HUMIDITY <- renderText({ input$HUMIDITY })
   output$INTENSITY <- renderText({ input$INTENSITY })
   
-  
-
-  observe({
-    no2_IsSelected <- input$NO2
-    ozone_IsSelected <- input$OZONE
-    co_IsSelected <- input$CO
-    h2s_IsSelected <- input$H2S
-    so2_IsSelected <- input$SO2
-    pm10_IsSelected <- input$PM10
-    pm25_IsSelected <- input$PM25
-    tempertature_IsSelected <- input$TEMPERATURE
-    humidity_IsSelected <- input$HUMIDITY
-    intensity_IsSelected <- input$INTENSITY
+  # Use these for the check boxes
+  no2_IsSelected <- reactive({
+    if(input$NO2 == FALSE){
+      no2_IsSelected <- FALSE
+    }else{
+      print("IS TRUE")
+      no2_IsSelected <- TRUE
+    }
+  })
+  ozone_IsSelected <- reactive({
+    if(input$OZONE == FALSE){
+      ozone_IsSelected <- FALSE
+    }else{
+      ozone_IsSelected <- TRUE
+    }
+  })
+  co_IsSelected <- reactive({
+    if(input$CO == FALSE){
+      co_IsSelected <- FALSE
+    }else{
+      print("IS TRUE")
+      co_IsSelected <- TRUE
+    }
+  })
+  h2s_IsSelected <- reactive({
+    if(input$H2S == FALSE){
+      no2_IsSelected <- FALSE
+    }else{
+      no2_IsSelected <- TRUE
+    }
+  })
+  so2_IsSelected <- reactive({
+    if(input$SO2 == FALSE){
+      so2_IsSelected <- FALSE
+    }else{
+      so2_IsSelected <- TRUE
+    }
+  })
+  pm10_IsSelected <- reactive({
+    if(input$PM10 == FALSE){
+      pm10_IsSelected <- FALSE
+    }else{
+      print("IS TRUE")
+      pm10_IsSelected <- TRUE
+    }
+  })
+  pm25_IsSelected <- reactive({
+    if(input$PM25 == FALSE){
+      pm25_IsSelected <- FALSE
+    }else{
+      print("IS TRUE")
+      pm25_IsSelected <- TRUE
+    }
+  })
+  tempertature_IsSelected <- reactive({
+    if(input$TEMPERATURE == FALSE){
+      temperature_IsSelected <- FALSE
+    }else{
+      temperature_IsSelected <- TRUE
+    }
+  })
+  humidity_IsSelected <- reactive({
+    if(input$HUMIDITY == FALSE){
+      humidity_IsSelected <- FALSE
+    }else{
+      print("IS TRUE")
+      humidity_IsSelected <- TRUE
+    }
+  })
+  intensity_IsSelected <- reactive({
+    if(input$INTENSITY == FALSE){
+      intensity_IsSelected <- FALSE
+    }else{
+      print("IS TRUE")
+      intensity_IsSelected <- TRUE
+    }
   })
   
   
-  # no2_IsSelected <- reactive(input$NO2)
-  # ozone_IsSelected <- reactive(input$OZONE)
-  # co_IsSelected <- reactive( input$CO)
-  # h2s_IsSelected <- reactive( input$H2S)
-  # so2_IsSelected <- reactive( input$SO2)
-  # pm10_IsSelected <- reactive( input$PM10)
-  # pm25_IsSelected <- reactive( input$PM25)
-  # tempertature_IsSelected <- reactive( input$TEMPERATURE)
-  # humidity_IsSelected <- reactive( input$HUMIDITY)
-  # intensity_IsSelected <- reactive( input$INTENSITY)
-  
-  # Use these for the check boxes
-  no2_IsSelected = TRUE
-  ozone_IsSelected = FALSE
-  co_IsSelected = TRUE
-  h2s_IsSelected = TRUE
-  so2_IsSelected = TRUE
-  pm10_IsSelected = FALSE
-  pm25_IsSelected = FALSE
-  tempertature_IsSelected = FALSE
-  humidity_IsSelected = FALSE
-  intensity_IsSelected = FALSE
-  
   
   getData <- function(vsn, d,h, path){
-    if(!no2_IsSelected & path == no2_path){return(list())}
-    if(!ozone_IsSelected & path == ozone_path){return(list())}
-    if(!co_IsSelected & path == co_path){return(list())}
-    if(!h2s_IsSelected & path == h2s_path){return(list())}
-    if(!so2_IsSelected & path == so2_path){return(list())}
-    if(!pm10_IsSelected & path == pm10_path){return(list())}
-    if(!pm25_IsSelected & path == pm25_path){return(list())}
-    if(!tempertature_IsSelected & path == temperature_path){return(list())}
-    if(!humidity_IsSelected & path == humidity_path){return(list())}
-    if(!intensity_IsSelected & path == intensity_path){return(list())}
+    print("RES")
+    print(no2_IsSelected())
+    print(path)
+    if(no2_IsSelected() == FALSE & path == no2_path){
+      print("IS FALSE")
+      return(list())}
+    if(!ozone_IsSelected() & path == ozone_path){return(list())}
+    if(!co_IsSelected() & path == co_path){return(list())}
+    if(!h2s_IsSelected() & path == h2s_path){return(list())}
+    if(!so2_IsSelected() & path == so2_path){return(list())}
+    if(!pm10_IsSelected() & path == pm10_path){return(list())}
+    if(!pm25_IsSelected() & path == pm25_path){return(list())}
+    if(!tempertature_IsSelected() & path == temperature_path){return(list())}
+    if(!humidity_IsSelected() & path == humidity_path){return(list())}
+    if(!intensity_IsSelected() & path == intensity_path){return(list())}
 
     size<-"200"
     if(d == 7){
@@ -331,7 +376,7 @@ server <- function(input, output,session) {
       size <- "20000"
     }
     if(h == 1){
-      size <- "1000"
+      size <- "500"
     }
     url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
     url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&sensor=", path,"&size=",size,sep="")
@@ -389,16 +434,16 @@ server <- function(input, output,session) {
   
   getPollutantPaths <- function(){
     pathList = list()
-    if(input$NO2){pathList = c(pathList, no2_path)}
-    if(ozone_IsSelected){pathList = c(pathList, ozone_path)}
-    if(co_IsSelected){pathList = c(pathList, co_path)}
-    if(h2s_IsSelected){pathList = c(pathList, h2s_path)}
-    if(so2_IsSelected){pathList = c(pathList, so2_path)}
-    if(pm10_IsSelected){pathList = c(pathList, pm10_paths)}
-    if(pm25_IsSelected){pathList = c(pathList, pm25_paths)}
-    if(tempertature_IsSelected){pathList = c(pathList, temperature_paths)}
-    if(humidity_IsSelected){pathList = c(pathList, humidity_paths)}
-    if(intensity_IsSelected){pathList = c(pathList, intensity_path)}
+    if(no2_IsSelected()){pathList = c(pathList, no2_path)}
+    if(ozone_IsSelected()){pathList = c(pathList, ozone_path)}
+    if(co_IsSelected()){pathList = c(pathList, co_path)}
+    if(h2s_IsSelected()){pathList = c(pathList, h2s_path)}
+    if(so2_IsSelected()){pathList = c(pathList, so2_path)}
+    if(pm10_IsSelected()){pathList = c(pathList, pm10_paths)}
+    if(pm25_IsSelected()){pathList = c(pathList, pm25_paths)}
+    if(tempertature_IsSelected()){pathList = c(pathList, temperature_paths)}
+    if(humidity_IsSelected()){pathList = c(pathList, humidity_paths)}
+    if(intensity_IsSelected()){pathList = c(pathList, intensity_path)}
     return(pathList)
   }
   
@@ -420,6 +465,19 @@ server <- function(input, output,session) {
   # }
   # 
   pollutantPaths <- reactive({
+    req(no2_IsSelected)
+    req(co_IsSelected)
+    req(ozone_IsSelected)
+    req(so2_IsSelected)
+    req(pm10_IsSelected)
+    req(pm25_IsSelected)
+    req(h2s_IsSelected)
+    req(tempertature_IsSelected)
+    req(humidity_IsSelected)
+    req(intensity_IsSelected)
+    print("here")
+    print(no2_IsSelected())
+    
     getPollutantPaths()
   })
   
@@ -440,8 +498,10 @@ server <- function(input, output,session) {
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
     path_list = pollutantPaths()
-
+    print(theAData)
+    print(path_list)
     c = select(subset(theAData, is.element(sensor_path, path_list) & as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value')
+    print(c)
     return (c)
   }
 
@@ -503,8 +563,16 @@ server <- function(input, output,session) {
   ## !!!!!!!!! Turn these into histograms !!!!!!!!!
     output$node1_cur <- renderPlot({
       req(input$node1Input)
-      
-      req(input$NO2)
+      req(no2_IsSelected)
+      req(co_IsSelected)
+      req(ozone_IsSelected)
+      req(so2_IsSelected)
+      req(pm10_IsSelected)
+      req(pm25_IsSelected)
+      req(h2s_IsSelected)
+      req(tempertature_IsSelected)
+      req(humidity_IsSelected)
+      req(intensity_IsSelected)
     
 
       no2_data <- getData(input$node1Input, 0, 1, no2_path)
@@ -521,9 +589,11 @@ server <- function(input, output,session) {
         stop(paste("No data avaliavle for node: "),input$node1Input)
       }
       else{
-        no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-        myplot <- ggplot() +
-          geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+        myplot <- ggplot() 
+        if(length(no2_data) >0){
+          no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          myplot <- myplot + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+        }
         if(length(co_data) > 0 ){
           co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
           myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
@@ -560,16 +630,16 @@ server <- function(input, output,session) {
     })
     output$node1_24 <- renderPlot({
       req(input$node1Input)
-      req(input$NO2)
-      req(input$OZONE)
-      req(input$CO)
-      req(input$H2S)
-      req(input$SO2)
-      req(input$PM10)
-      req(input$PM25)
-      req(input$TEMPERATURE)
-      req(input$HUMIDITY)
-      req(input$INTENSITY)
+      req(no2_IsSelected)
+      req(co_IsSelected)
+      req(ozone_IsSelected)
+      req(so2_IsSelected)
+      req(pm10_IsSelected)
+      req(pm25_IsSelected)
+      req(h2s_IsSelected)
+      req(tempertature_IsSelected)
+      req(humidity_IsSelected)
+      req(intensity_IsSelected)
       
       no2_data <- getData(input$node1Input, 1, 0, no2_path)
       co_data <- getData(input$node1Input, 1, 0, co_path)
@@ -624,16 +694,16 @@ server <- function(input, output,session) {
     })
     output$node1_7 <- renderPlot({
       req(input$node1Input)
-      req(input$NO2)
-      req(input$OZONE)
-      req(input$CO)
-      req(input$H2S)
-      req(input$SO2)
-      req(input$PM10)
-      req(input$PM25)
-      req(input$TEMPERATURE)
-      req(input$HUMIDITY)
-      req(input$INTENSITY)
+      req(no2_IsSelected)
+      req(co_IsSelected)
+      req(ozone_IsSelected)
+      req(so2_IsSelected)
+      req(pm10_IsSelected)
+      req(pm25_IsSelected)
+      req(h2s_IsSelected)
+      req(tempertature_IsSelected)
+      req(humidity_IsSelected)
+      req(intensity_IsSelected)
       
       no2_data <- getData(input$node1Input, 7, 0, no2_path)
       co_data <- getData(input$node1Input, 7, 0, co_path)
@@ -692,16 +762,16 @@ server <- function(input, output,session) {
     output$node2_cur <- renderPlot({
       
       req(input$node2Input)
-      req(input$NO2)
-      req(input$OZONE)
-      req(input$CO)
-      req(input$H2S)
-      req(input$SO2)
-      req(input$PM10)
-      req(input$PM25)
-      req(input$TEMPERATURE)
-      req(input$HUMIDITY)
-      req(input$INTENSITY)
+      req(no2_IsSelected)
+      req(co_IsSelected)
+      req(ozone_IsSelected)
+      req(so2_IsSelected)
+      req(pm10_IsSelected)
+      req(pm25_IsSelected)
+      req(h2s_IsSelected)
+      req(tempertature_IsSelected)
+      req(humidity_IsSelected)
+      req(intensity_IsSelected)
       
       no2_data <- getData(input$node2Input, 0, 1, no2_path)
       co_data <- getData(input$node2Input, 0, 1, co_path)
@@ -757,16 +827,16 @@ server <- function(input, output,session) {
     })
     output$node2_24 <- renderPlot({
       req(input$node2Input)
-      req(input$NO2)
-      req(input$OZONE)
-      req(input$CO)
-      req(input$H2S)
-      req(input$SO2)
-      req(input$PM10)
-      req(input$PM25)
-      req(input$TEMPERATURE)
-      req(input$HUMIDITY)
-      req(input$INTENSITY)
+      req(no2_IsSelected)
+      req(co_IsSelected)
+      req(ozone_IsSelected)
+      req(so2_IsSelected)
+      req(pm10_IsSelected)
+      req(pm25_IsSelected)
+      req(h2s_IsSelected)
+      req(tempertature_IsSelected)
+      req(humidity_IsSelected)
+      req(intensity_IsSelected)
       
       no2_data <- getData(input$node2Input, 1, 0, no2_path)
       co_data <- getData(input$node2Input, 1, 0, co_path)
@@ -821,16 +891,16 @@ server <- function(input, output,session) {
     })
     output$node2_7 <- renderPlot({
       req(input$node2Input)
-      req(input$NO2)
-      req(input$OZONE)
-      req(input$CO)
-      req(input$H2S)
-      req(input$SO2)
-      req(input$PM10)
-      req(input$PM25)
-      req(input$TEMPERATURE)
-      req(input$HUMIDITY)
-      req(input$INTENSITY)
+      req(no2_IsSelected)
+      req(co_IsSelected)
+      req(ozone_IsSelected)
+      req(so2_IsSelected)
+      req(pm10_IsSelected)
+      req(pm25_IsSelected)
+      req(h2s_IsSelected)
+      req(tempertature_IsSelected)
+      req(humidity_IsSelected)
+      req(intensity_IsSelected)
       
       no2_data <- getData(input$node2Input, 7, 0, no2_path)
       co_data <- getData(input$node2Input, 7, 0, co_path)
@@ -891,7 +961,11 @@ server <- function(input, output,session) {
    
    
    output$mymap <- renderLeaflet({
+     req(pollutantPaths)
+     print(no2_IsSelected())
+     print("in maps")
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
+     print(ds)
      leaflet(ds) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
@@ -900,16 +974,16 @@ server <- function(input, output,session) {
    observeEvent(input$mymap_marker_click, { 
      p <- input$mymap_marker_click
      output$node_data <- renderPlot({
-       req(input$NO2)
-       req(input$OZONE)
-       req(input$CO)
-       req(input$H2S)
-       req(input$SO2)
-       req(input$PM10)
-       req(input$PM25)
-       req(input$TEMPERATURE)
-       req(input$HUMIDITY)
-       req(input$INTENSITY)
+       req(no2_IsSelected)
+       req(co_IsSelected)
+       req(ozone_IsSelected)
+       req(so2_IsSelected)
+       req(pm10_IsSelected)
+       req(pm25_IsSelected)
+       req(h2s_IsSelected)
+       req(tempertature_IsSelected)
+       req(humidity_IsSelected)
+       req(intensity_IsSelected)
        
        no2_data <- getData(p$id, 0,1, no2_path)
        co_data <- getData(p$id, 0,1, co_path)
@@ -964,16 +1038,16 @@ server <- function(input, output,session) {
 
      })
      output$node_data24 <- renderPlot({
-       req(input$NO2)
-       req(input$OZONE)
-       req(input$CO)
-       req(input$H2S)
-       req(input$SO2)
-       req(input$PM10)
-       req(input$PM25)
-       req(input$TEMPERATURE)
-       req(input$HUMIDITY)
-       req(input$INTENSITY)
+       req(no2_IsSelected)
+       req(co_IsSelected)
+       req(ozone_IsSelected)
+       req(so2_IsSelected)
+       req(pm10_IsSelected)
+       req(pm25_IsSelected)
+       req(h2s_IsSelected)
+       req(tempertature_IsSelected)
+       req(humidity_IsSelected)
+       req(intensity_IsSelected)
        
        no2_data <- getData(p$id, 1, 0, no2_path)
        co_data <- getData(p$id, 1, 0, co_path)
@@ -1027,16 +1101,16 @@ server <- function(input, output,session) {
        }
      })
      output$node_data7 <- renderPlot({
-       req(input$NO2)
-       req(input$OZONE)
-       req(input$CO)
-       req(input$H2S)
-       req(input$SO2)
-       req(input$PM10)
-       req(input$PM25)
-       req(input$TEMPERATURE)
-       req(input$HUMIDITY)
-       req(input$INTENSITY)
+       req(no2_IsSelected)
+       req(co_IsSelected)
+       req(ozone_IsSelected)
+       req(so2_IsSelected)
+       req(pm10_IsSelected)
+       req(pm25_IsSelected)
+       req(h2s_IsSelected)
+       req(tempertature_IsSelected)
+       req(humidity_IsSelected)
+       req(intensity_IsSelected)
        
        no2_data <- getData(p$id, 7, 0, no2_path)
        co_data <- getData(p$id, 7, 0, co_path)
