@@ -13,7 +13,7 @@ library(shiny)
 library(DT)
 library(AotClient) 
 library(darksky)
-library("ropenaq")
+#library("ropenaq")
 library(lubridate)
 library(tidyverse)
 library(dplyr)
@@ -23,6 +23,7 @@ library(qdapTools)
 library(data.table)
 library(jsonlite)
 pollutants_list = list("NO2", "Ozone", "CO", "H2S", "SO2", "PM10", "PM25", "Temperature", "Humidity", "Light")
+Sys.setenv(DARKSKY_API_KEY = '305d59068af82054adce3f22e00d7495')
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
   ################################################################################ THE COLOR AND LENGTH OF THE TITLE FOR THE SIDEBAR ################################################################################
@@ -368,21 +369,22 @@ server <- function(input, output,session) {
     if(!humidity_IsSelected() & path == humidity_path){return(list())}
     if(!intensity_IsSelected() & path == intensity_path){return(list())}
 
-    size<-"200"
+    sz<-"200"
     if(d == 7){
-      size <- "100000"
+      sz <- "100000"
     }
     if(d == 1){
-      size <- "20000"
+      sz <- "20000"
     }
     if(h == 1){
-      size <- "500"
+      sz <- "500"
     }
-    url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
-    url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&sensor=", path,"&size=",size,sep="")
-    s <- download.file(url, "obs.html", quiet = FALSE) 
-    t = fromJSON("obs.html")
-    u = t$data
+    # url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
+    # url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&sensor=", path,"&size=",size,sep="")
+    # s <- download.file(url, "obs.html", quiet = FALSE) 
+    # t = fromJSON("obs.html")
+    # u = t$data
+    u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
@@ -652,7 +654,7 @@ server <- function(input, output,session) {
  
   theAData <- ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000))
 
-
+  
   observe({
     autoInvalidate()
     theAData <- ls.observations(filters=list(project='chicago', size=1000))
