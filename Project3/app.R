@@ -23,6 +23,7 @@ library(qdapTools)
 library(data.table)
 library(jsonlite)
 pollutants_list = list("NO2", "Ozone", "CO", "H2S", "SO2", "PM10", "PM25", "Temperature", "Humidity", "Light")
+map_list = list("Default", "Map 1", "Map 2", "Map 3")
 Sys.setenv(DARKSKY_API_KEY = '305d59068af82054adce3f22e00d7495')
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
@@ -36,6 +37,7 @@ ui <- dashboardPage(
                                uiOutput("node1Output"),
                                uiOutput("node2Output"),
                                selectInput("pollutants", "Pollutants", pollutants_list),
+                               selectInput("Maps", "Maps", map_list, selected = "Default"),
                                menuItem("Node Map", tabName="map", icon = icon("dashboard")),
                                menuItem("Comparison", tabName="compare", icon = icon("dashboard")),
                                menuItem("Resources", tabName="resources", icon = icon("bullet")),
@@ -1114,12 +1116,86 @@ server <- function(input, output,session) {
 
    
    
+   
+   map_Selected <- reactive({ 
+     req(input$Maps)
+     if(input$Maps == "Map 1"){
+       print("Is in map 1")
+       map_Selected <- "1"
+     }
+     if(input$Maps == "Map 2"){
+       print("Is in map 2")
+       map_Selected <- "2"
+     }
+     if(input$Maps == "Map 3"){
+       print("Is in map 3")
+       map_Selected <- "3"
+     } 
+     else{
+       print("Is in default")
+       map_Selected <- "0"
+     }
+   })
+   
+   
    output$mymap <- renderLeaflet({
+     req(map_Selected)
+     req(input$Maps)
      req(pollutantPaths)
+     
+     print("in maps")
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
-     leaflet(ds) %>%
-       addTiles() %>%  # Add default OpenStreetMap map tiles
-       addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+     print(input$Maps)
+   # output$mymap <- renderLeaflet({
+   #   req(pollutantPaths)
+   #   req(input$Maps)
+   #   ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
+     # leaflet(ds) %>%
+     #   addTiles() %>%  # Add default OpenStreetMap map tiles
+     #   addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+     # 
+
+     
+     if(input$Maps == "Default"){
+       leaflet(ds) %>%
+         addTiles() %>%  # Add default OpenStreetMap map tiles
+         #addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
+         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+    
+     }
+      else if(input$Maps == "Map 1"){
+       leaflet(ds) %>%
+         addTiles() %>%  # Add default OpenStreetMap map tiles
+         addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
+         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+       
+     }
+     
+     # else if(input$Maps == "Map 2"){
+     #   leaflet(ds) %>%
+     #     addTiles() %>%  # Add default OpenStreetMap map tiles
+     #     addProviderTiles(providers$Stamen.TopOSMRelief) %>%    #Change this to change the different map background types   
+     #     addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+     #   
+     # }
+     
+     else if(input$Maps == "Map 2"){
+       leaflet(ds) %>%
+         addTiles() %>%  # Add default OpenStreetMap map tiles
+         addProviderTiles(providers$Stamen.TonerHybrid) %>%    #Change this to change the different map background types
+         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+
+     }
+     
+     
+     else if(input$Maps == "Map 3"){
+       leaflet(ds) %>%
+         addTiles() %>%  # Add default OpenStreetMap map tiles
+         addProviderTiles(providers$Stamen) %>%    #Change this to change the different map background types
+         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+       
+     }
+     
    })
  
    observeEvent(input$mymap_marker_click, { 
