@@ -13,7 +13,7 @@ library(shiny)
 library(DT)
 library(AotClient) 
 library(darksky)
-#library("ropenaq")
+library(ropenaq)
 library(lubridate)
 library(tidyverse)
 library(dplyr)
@@ -139,14 +139,15 @@ ui <- dashboardPage(
     ),
     tabItem(
       tabName = "compare2",
+      fluidRow(
                box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("NO2_1")),
                box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_1")),
                box( title = "NODE 1 - CO", solidHeader = TRUE, status = "primary",width = 2,dataTableOutput("CO_1")),
                box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary",width = 2,dataTableOutput("H2S_1")),
                box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("SO2_1")),
                box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM10_1")),
-               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM25_1")),
-      
+               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM25_1"))),
+      fluidRow(
                box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary" ,width = 2, dataTableOutput("NO2_2")),
                box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_2")),
                box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("CO_2")),
@@ -155,7 +156,7 @@ ui <- dashboardPage(
                box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM10_2")),
                box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM25_2"))
     )
-    )
+    ))
   ))
 
 # Nodes - Column Names
