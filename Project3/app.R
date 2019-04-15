@@ -277,7 +277,6 @@ server <- function(input, output,session) {
     if(input$NO2 == FALSE){
       no2_IsSelected <- FALSE
     }else{
-      print("IS TRUE")
       no2_IsSelected <- TRUE
     }
   })
@@ -292,7 +291,6 @@ server <- function(input, output,session) {
     if(input$CO == FALSE){
       co_IsSelected <- FALSE
     }else{
-      print("IS TRUE")
       co_IsSelected <- TRUE
     }
   })
@@ -314,7 +312,6 @@ server <- function(input, output,session) {
     if(input$PM10 == FALSE){
       pm10_IsSelected <- FALSE
     }else{
-      print("IS TRUE")
       pm10_IsSelected <- TRUE
     }
   })
@@ -322,7 +319,6 @@ server <- function(input, output,session) {
     if(input$PM25 == FALSE){
       pm25_IsSelected <- FALSE
     }else{
-      print("IS TRUE")
       pm25_IsSelected <- TRUE
     }
   })
@@ -337,7 +333,6 @@ server <- function(input, output,session) {
     if(input$HUMIDITY == FALSE){
       humidity_IsSelected <- FALSE
     }else{
-      print("IS TRUE")
       humidity_IsSelected <- TRUE
     }
   })
@@ -345,7 +340,6 @@ server <- function(input, output,session) {
     if(input$INTENSITY == FALSE){
       intensity_IsSelected <- FALSE
     }else{
-      print("IS TRUE")
       intensity_IsSelected <- TRUE
     }
   })
@@ -353,11 +347,7 @@ server <- function(input, output,session) {
   
   
   getData <- function(vsn, d,h, path){
-    print("RES")
-    print(no2_IsSelected())
-    print(path)
     if(no2_IsSelected() == FALSE & path == no2_path){
-      print("IS FALSE")
       return(list())}
     if(!ozone_IsSelected() & path == ozone_path){return(list())}
     if(!co_IsSelected() & path == co_path){return(list())}
@@ -398,7 +388,6 @@ server <- function(input, output,session) {
   }
   
   #########################   first node
-  print(ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000)))
   
   output$NO2_1 <- DT::renderDataTable(
     DT::datatable({ 
@@ -642,16 +631,16 @@ server <- function(input, output,session) {
     req(tempertature_IsSelected)
     req(humidity_IsSelected)
     req(intensity_IsSelected)
-    print("here")
-    print(no2_IsSelected())
+
     
     getPollutantPaths()
   })
   
 
   #& as_datetime(timestamp) %within% int
-
- 
+  forecast <- get_forecast_for(41.870, -87.647, "2019-01-01T12:00:00-0600")
+  
+  print(forecast)
   theAData <- ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000))
 
   
@@ -665,10 +654,7 @@ server <- function(input, output,session) {
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
     path_list = pollutantPaths()
-    print(theAData)
-    print(path_list)
     c = select(subset(theAData, is.element(sensor_path, path_list) & as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value')
-    print(c)
     return (c)
   }
 
@@ -1129,10 +1115,7 @@ server <- function(input, output,session) {
    
    output$mymap <- renderLeaflet({
      req(pollutantPaths)
-     print(no2_IsSelected())
-     print("in maps")
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
-     print(ds)
      leaflet(ds) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
