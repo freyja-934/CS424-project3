@@ -347,7 +347,32 @@ server <- function(input, output,session) {
     }
   })
   
+  # Coordinates of every county in illinois
+  county_coordinates <- read.table(file= "county_coordinates.csv",sep = ",", header = TRUE)
   
+  getForecast <- function(lat, lon){
+    currentTime = Sys.time();
+    gmtTime = as.POSIXct(currentTime)
+    gmtTime <- toString(as.POSIXct(gmtTime, "%Y-%m-%dT%H:%M"))
+    arr <- unlist(strsplit(gmtTime, ' '))
+    curTime <- paste(arr[1], 'T', arr[2], sep="")
+    forecast <- get_forecast_for(lat, lon, curTime)
+    return(forecast)
+  }
+  
+  #current weather data (24 hours)
+  # Pollutants: temperature, humidity, wind speed, wind bearing, cloud cover, visibility, pressure, ozone, summary
+  getCurForecast <- function(lat, lon){
+    forecast <- getForecast(lat, lon)
+    hourly_forecast <- forecast$hourly
+    weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
+    return(weather_data)
+  }
+  
+  #current weather data in Chicago (24 hours) for selected pollutants 
+  weather_data <- getCurForecast(41.870, -87.647)
+  
+  print(weather_data)
   
   getData <- function(vsn, d,h, path){
     if(no2_IsSelected() == FALSE & path == no2_path){
@@ -640,10 +665,8 @@ server <- function(input, output,session) {
   })
   
 
-  #& as_datetime(timestamp) %within% int
-  forecast <- get_forecast_for(41.870, -87.647, "2019-01-01T12:00:00-0600")
-  
-  print(forecast)
+
+
   theAData <- ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000))
 
   
