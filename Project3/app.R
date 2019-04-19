@@ -33,6 +33,9 @@ ui <- dashboardPage(
   
   ######################################## CREATE DROP DOWN MENUS IN SIDEBAR + NEW TAB CONTAINING RESOURCES ######################################## 
   dashboardSidebar(sidebarMenu(disable = FALSE, collapsed = FALSE,  style = "margin-top:500px",
+                               radioButtons("units", "Units",
+                                            c("Metric" = "met",
+                                              "Imperial" = "imp")),
                                uiOutput("nodeOutput"),
                                uiOutput("node1Output"),
                                uiOutput("node2Output"),
