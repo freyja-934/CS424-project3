@@ -22,8 +22,11 @@ library(leaflet)
 library(qdapTools)
 library(data.table)
 library(jsonlite)
+library(leaflet.extras)
+
 pollutants_list = list("NO2", "Ozone", "CO", "H2S", "SO2", "PM10", "PM25", "Temperature", "Humidity", "Light")
 map_list = list("Default", "Map 1", "Map 2", "Map 3")
+dates_list = list("Current", "24 Hours", "7 Days")
 Sys.setenv(DARKSKY_API_KEY = '305d59068af82054adce3f22e00d7495')
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
@@ -39,23 +42,41 @@ ui <- dashboardPage(
                                uiOutput("nodeOutput"),
                                uiOutput("node1Output"),
                                uiOutput("node2Output"),
-                               selectInput("pollutants", "Pollutants", pollutants_list),
-                               selectInput("Maps", "Maps", map_list, selected = "Default"),
-                               menuItem("Node Map", tabName="map", icon = icon("dashboard")),
-                               menuItem("Comparison", tabName="compare", icon = icon("dashboard")),
-                               menuItem("Resources", tabName="resources", icon = icon("bullet")),
-                               menuItem("test", tabName="boxes", icon = icon("bullet")),
-                               menuItem("compare2", tabName="compare2", icon = icon("bullet")),
-                               checkboxInput("NO2", "NO2", TRUE),
-                               checkboxInput("OZONE", "OZONE", TRUE),
-                               checkboxInput("CO", "CO", TRUE),
-                               checkboxInput("H2S", "H2S", FALSE),
-                               checkboxInput("SO2", "SO2", FALSE),
-                               checkboxInput("PM10", "PM10", FALSE),
-                               checkboxInput("PM25", "PM25", FALSE),
-                               checkboxInput("TEMPERATURE", "TEMPERATURE", FALSE),
-                               checkboxInput("HUMIDITY", "HUMIDITY", FALSE),
-                               checkboxInput("INTENSITY", "INTENSITY", FALSE)
+                               selectInput(inputId = "TimeFrame", "Time Frame", dates_list),
+                               selectInput("Maps", "Map Color", map_list, selected = "Default"),
+                               menuItem("AoT Dashboards", icon = icon("dashboard"), startExpanded = FALSE,
+                                menuSubItem("Node Map", tabName="map", icon = icon("map")),
+                                menuSubItem("Comparison", tabName="compare", icon = icon("dashboard")),
+                                menuSubItem("Heat Map", tabName="heatmap", icon = icon("map")),
+                                menuSubItem("compare2", tabName="compare2", icon = icon("bullet")),
+                                menuSubItem("Resources", tabName="resources", icon = icon("bullet"))),
+                               menuItem("Choose AoT Data", icon = icon("dashboard"), startExpanded = FALSE,
+                                checkboxInput("NO2", "NO2", TRUE),
+                                checkboxInput("OZONE", "OZONE", TRUE),
+                                checkboxInput("CO", "CO", TRUE),
+                                checkboxInput("H2S", "H2S", FALSE),
+                                checkboxInput("SO2", "SO2", FALSE),
+                                checkboxInput("PM10", "PM10", FALSE),
+                                checkboxInput("PM25", "PM25", FALSE),
+                                checkboxInput("TEMPERATURE", "TEMPERATURE", FALSE),
+                                checkboxInput("HUMIDITY", "HUMIDITY", FALSE),
+                                checkboxInput("INTENSITY", "INTENSITY", FALSE)),
+                               menuItem("Dark Sky Dashboards", icon = icon("dashboard"), startExpanded = FALSE,
+                                        menuSubItem("Dark Sky test", tabName="darkskyT", icon = icon("bullet"))),
+                               menuItem("Choose Dark Sky Data", icon = icon("dashboard"), startExpanded = FALSE,
+                                        checkboxInput("TEMPERATURE_DS", "TEMPERATURE", FALSE),
+                                        checkboxInput("HUMIDITY_DS", "HUMIDITY", FALSE),
+                                        checkboxInput("WINDSPEED", "WIND SPEED", TRUE),
+                                        checkboxInput("WINDBEARING", "WIND BEARING", FALSE),
+                                        checkboxInput("CLOUDCOVER", "CLOUD COVER", TRUE),
+                                        checkboxInput("VISIBILITY", "VISIBILITY", FALSE),
+                                        checkboxInput("PRESSURE", "PRESSURE", FALSE),
+                                        checkboxInput("OZONE_DS", "OZONE", TRUE),
+                                        checkboxInput("SUMMARY", "SUMMARY", FALSE)
+                                        )
+                               
+                               
+                               #temperature, humidity, wind speed, wind bearing, cloud cover, visibility, pressure, ozone, summary
                               
                               
   )),
@@ -128,17 +149,17 @@ ui <- dashboardPage(
       
     ),
     tabItem(
-      tabName = "boxes",
-      verbatimTextOutput("NO2"),
-      verbatimTextOutput("OZONE"),
-      verbatimTextOutput("CO"),
-      verbatimTextOutput("H2S"),
-      verbatimTextOutput("SO2"),
-      verbatimTextOutput("PM10"),
-      verbatimTextOutput("PM25"),
-      verbatimTextOutput("TEMPERATURE"),
-      verbatimTextOutput("HUMIDITY"),
-      verbatimTextOutput("INTENSITY")
+      tabName = "heatmap",
+      # 
+      leafletOutput("heatmap", height = 1200)
+      # column(12,h4(textOutput("Heat Map")),
+      #        tabsetPanel( type = "tabs",
+      #                     tabPanel("Current",leafletOutput("map1")),
+      #                     tabPanel("24 Hours", leafletOutput("map24")),
+      #                     tabPanel("7 Days", leafletOutput("map7")),
+      #                     position = "left"
+      #        )
+      # )
       
       
     ),
@@ -161,7 +182,22 @@ ui <- dashboardPage(
                box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM10_2")),
                box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM25_2"))
     )
-    ))
+    ),
+    
+    ################# Dark Sky ######################
+    tabItem(
+      tabName = "darkskyT",
+      verbatimTextOutput("TEMPERATURE_DS"),
+      verbatimTextOutput("HUMIDITY_DS"),
+      verbatimTextOutput("WINDSPEED"),
+      verbatimTextOutput("WINDBEARING"),
+      verbatimTextOutput("CLOUDCOVER"),
+      verbatimTextOutput("VISIBILITY"),
+      verbatimTextOutput("PRESSURE"),
+      verbatimTextOutput("OZONE_DS"),
+      verbatimTextOutput("SUMMARY")
+    )
+    )
   ))
 
 # Nodes - Column Names
@@ -265,7 +301,27 @@ server <- function(input, output,session) {
                         "chemsense.sht25.humidity")
   intensity_path = "chemsense.si1145.visible_light_intensity"
   
-  ################### check boxes ##############
+  
+  ################################################################## heat map #############
+  
+  output$heatmap <- renderLeaflet({
+    map  <- leaflet() %>% 
+      addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
+      addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Maptile") %>%
+      addProviderTiles(providers$Esri.WorldImagery, group = "Satellite Maptile") %>%
+      addHeatmap(lng = 41, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+      addHeatmap(lng = 40, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+      addHeatmap(lng = 39, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+      addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+      addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+      addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+      setView(41, 50, zoom = 4) %>% 
+      addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile"), options = layersControlOptions(collapsed = FALSE))
+  
+  map
+})
+  
+  ############################################################ Aot check boxes ##############
   
   output$NO2 <- renderText({ input$NO2 })
   output$OZONE <- renderText({ input$OZONE })
@@ -302,9 +358,9 @@ server <- function(input, output,session) {
   })
   h2s_IsSelected <- reactive({
     if(input$H2S == FALSE){
-      no2_IsSelected <- FALSE
+      h2s_IsSelected <- FALSE
     }else{
-      no2_IsSelected <- TRUE
+      h2s_IsSelected <- TRUE
     }
   })
   so2_IsSelected <- reactive({
@@ -350,6 +406,101 @@ server <- function(input, output,session) {
     }
   })
   
+  
+  ################################################################# Dark Sky check boxes ##############
+  
+  # verbatimTextOutput("TEMPERATURE_DS"),
+  # verbatimTextOutput("HUMIDITY_DS"),
+  # verbatimTextOutput("WINDSPEED"),
+  # verbatimTextOutput("WINDBEARING"),
+  # verbatimTextOutput("CLOUDCOVER"),
+  # verbatimTextOutput("VISIBILITY"),
+  # verbatimTextOutput("PRESSURE"),
+  # verbatimTextOutput("OZONE_DS"),
+  # verbatimTextOutput("SUMMARY")
+  
+  output$TEMPERATURE_DS <- renderText({ input$TEMPERATURE_DS })
+  output$HUMIDITY_DS <- renderText({ input$HUMIDITY_DS })
+  output$WINDSPEED <- renderText({ input$WINDSPEED })
+  output$WINDBEARING <- renderText({ input$WINDBEARING })
+  output$CLOUDCOVER <- renderText({ input$CLOUDCOVER })
+  output$VISIBILITY <- renderText({ input$VISIBILITY })
+  output$PRESSURE <- renderText({ input$PRESSURE })
+  output$OZONE_DS <- renderText({ input$OZONE_DS})
+  output$SUMMARY <- renderText({ input$SUMMARY })
+  
+  # Use these for the check boxes
+  TEMPERATURE_DS_IsSelected <- reactive({
+    if(input$TEMPERATURE_DS == FALSE){
+      TEMPERATURE_DS_IsSelected <- FALSE
+    }else{
+      TEMPERATURE_DS_IsSelected <- TRUE
+    }
+  })
+  HUMIDITY_DS_IsSelected <- reactive({
+    if(input$HUMIDITY_DS == FALSE){
+      HUMIDITY_DS_IsSelected <- FALSE
+    }else{
+      HUMIDITY_DS_IsSelected <- TRUE
+    }
+  })
+  WINDSPEED_IsSelected <- reactive({
+    if(input$WINDSPEED == FALSE){
+      WINDSPEED_IsSelected <- FALSE
+    }else{
+      WINDSPEED_IsSelected <- TRUE
+    }
+  })
+  WINDBEARING_IsSelected <- reactive({
+    if(input$WINDBEARING == FALSE){
+      WINDBEARING_IsSelected <- FALSE
+    }else{
+      WINDBEARING_IsSelected <- TRUE
+    }
+  })
+  CLOUDCOVER_IsSelected <- reactive({
+    if(input$CLOUDCOVER == FALSE){
+      CLOUDCOVER_IsSelected <- FALSE
+    }else{
+      CLOUDCOVER_IsSelected <- TRUE
+    }
+  })
+  VISIBILITY_IsSelected <- reactive({
+    if(input$VISIBILITY == FALSE){
+      VISIBILITY_IsSelected <- FALSE
+    }else{
+      VISIBILITY_IsSelected <- TRUE
+    }
+  })
+  PRESSURE_IsSelected <- reactive({
+    if(input$PRESSURE == FALSE){
+      PRESSURE_IsSelected <- FALSE
+    }else{
+      PRESSURE_IsSelected <- TRUE
+    }
+  })
+  OZONE_DS_IsSelected <- reactive({
+    if(input$OZONE_DS == FALSE){
+      OZONE_DS_IsSelected <- FALSE
+    }else{
+      OZONE_DS_IsSelected <- TRUE
+    }
+  })
+  humidity_IsSelected <- reactive({
+    if(input$HUMIDITY == FALSE){
+      humidity_IsSelected <- FALSE
+    }else{
+      humidity_IsSelected <- TRUE
+    }
+  })
+  SUMMARY_IsSelected <- reactive({
+    if(input$SUMMARY == FALSE){
+      SUMMARY_IsSelected <- FALSE
+    }else{
+      SUMMARY_IsSelected <- TRUE
+    }
+  })
+  
   # Coordinates of every county in illinois
   county_coordinates <- read.table(file= "county_coordinates.csv",sep = ",", header = TRUE)
   
@@ -371,6 +522,8 @@ server <- function(input, output,session) {
     weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
     return(weather_data)
   }
+  
+  
   
   #current weather data in Chicago (24 hours) for selected pollutants 
   weather_data <- getCurForecast(41.870, -87.647)
