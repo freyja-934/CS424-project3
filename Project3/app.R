@@ -1031,7 +1031,7 @@ server <- function(input, output,session) {
       req(tempertature_IsSelected)
       req(humidity_IsSelected)
       req(intensity_IsSelected)
-    
+      req(input$units)
 
       no2_data <- getData(input$node1Input, 0, 1, no2_path)
       co_data <- getData(input$node1Input, 0, 1, co_path)
@@ -1098,6 +1098,7 @@ server <- function(input, output,session) {
       req(tempertature_IsSelected)
       req(humidity_IsSelected)
       req(intensity_IsSelected)
+      req(input$units)
       
       no2_data <- getData(input$node1Input, 1, 0, no2_path)
       co_data <- getData(input$node1Input, 1, 0, co_path)
@@ -1162,6 +1163,7 @@ server <- function(input, output,session) {
       req(tempertature_IsSelected)
       req(humidity_IsSelected)
       req(intensity_IsSelected)
+      req(input$units)
       
       no2_data <- getData(input$node1Input, 7, 0, no2_path)
       co_data <- getData(input$node1Input, 7, 0, co_path)
@@ -1230,6 +1232,7 @@ server <- function(input, output,session) {
       req(tempertature_IsSelected)
       req(humidity_IsSelected)
       req(intensity_IsSelected)
+      req(input$units)
       
       no2_data <- getData(input$node2Input, 0, 1, no2_path)
       co_data <- getData(input$node2Input, 0, 1, co_path)
@@ -1295,6 +1298,7 @@ server <- function(input, output,session) {
       req(tempertature_IsSelected)
       req(humidity_IsSelected)
       req(intensity_IsSelected)
+      req(input$units)
       
       no2_data <- getData(input$node2Input, 1, 0, no2_path)
       co_data <- getData(input$node2Input, 1, 0, co_path)
@@ -1359,6 +1363,7 @@ server <- function(input, output,session) {
       req(tempertature_IsSelected)
       req(humidity_IsSelected)
       req(intensity_IsSelected)
+      req(input$units)
       
       no2_data <- getData(input$node2Input, 7, 0, no2_path)
       co_data <- getData(input$node2Input, 7, 0, co_path)
@@ -1417,29 +1422,6 @@ server <- function(input, output,session) {
    res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
 
    
-   
-   
-   map_Selected <- reactive({ 
-     req(input$Maps)
-     if(input$Maps == "Map 1"){
-       print("Is in map 1")
-       map_Selected <- "1"
-     }
-     if(input$Maps == "Map 2"){
-       print("Is in map 2")
-       map_Selected <- "2"
-     }
-     if(input$Maps == "Map 3"){
-       print("Is in map 3")
-       map_Selected <- "3"
-     } 
-     else{
-       print("Is in default")
-       map_Selected <- "0"
-     }
-   })
-   
-   
    output$mymap <- renderLeaflet({
      req(map_Selected)
      req(input$Maps)
@@ -1447,32 +1429,32 @@ server <- function(input, output,session) {
      
      print("in maps")
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
-     print(input$Maps)
-   # output$mymap <- renderLeaflet({
-   #   req(pollutantPaths)
-   #   req(input$Maps)
-   #   ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
-     # leaflet(ds) %>%
-     #   addTiles() %>%  # Add default OpenStreetMap map tiles
-     #   addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-     # 
-
      
-     if(input$Maps == "Default"){
-       leaflet(ds) %>%
-         addTiles() %>%  # Add default OpenStreetMap map tiles
-         #addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
-         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+     leaflet(ds) %>%
+       addTiles() %>%  # Add default OpenStreetMap map tiles
+       addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
+       addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Maptile") %>%
+       addProviderTiles(providers$Esri.WorldImagery, group = "Satellite Maptile") %>%
+       addProviderTiles(providers$Hydda, group = "Hydda Maptilte") %>%    #Change this to change the different map background types
+       addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)%>%
+       addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile", "Hydda Maptilte"), options = layersControlOptions(collapsed = FALSE))
     
-     }
-      else if(input$Maps == "Map 1"){
-       leaflet(ds) %>%
-         addTiles() %>%  # Add default OpenStreetMap map tiles
-         addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
-         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-       
-     }
      
+     # if(input$Maps == "Default"){
+     #   leaflet(ds) %>%
+     #     addTiles() %>%  # Add default OpenStreetMap map tiles
+     #     #addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
+     #     addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+     # 
+     # }
+     #  else if(input$Maps == "Map 1"){
+     #   leaflet(ds) %>%
+     #     addTiles() %>%  # Add default OpenStreetMap map tiles
+     #     addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
+     #     addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+     #   
+     # }
+     # 
      # else if(input$Maps == "Map 2"){
      #   leaflet(ds) %>%
      #     addTiles() %>%  # Add default OpenStreetMap map tiles
@@ -1481,24 +1463,24 @@ server <- function(input, output,session) {
      #   
      # }
      
-     else if(input$Maps == "Map 2"){
-       leaflet(ds) %>%
-         addTiles() %>%  # Add default OpenStreetMap map tiles
-         addProviderTiles(providers$Stamen.TonerHybrid) %>%    #Change this to change the different map background types
-         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-
-     }
-     
-     
-     else if(input$Maps == "Map 3"){
-       leaflet(ds) %>%
-         addTiles() %>%  # Add default OpenStreetMap map tiles
-         addProviderTiles(providers$Stamen) %>%    #Change this to change the different map background types
-         addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-       
-     }
-     
-   })
+   #   else if(input$Maps == "Map 2"){
+   #     leaflet(ds) %>%
+   #       addTiles() %>%  # Add default OpenStreetMap map tiles
+   #       addProviderTiles(providers$Stamen.TonerHybrid) %>%    #Change this to change the different map background types
+   #       addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+   # 
+   #   }
+   #   
+   #   
+   #   else if(input$Maps == "Map 3"){
+   #     leaflet(ds) %>%
+   #       addTiles() %>%  # Add default OpenStreetMap map tiles
+   #       addProviderTiles(providers$Stamen) %>%    #Change this to change the different map background types
+   #       addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
+   #     
+   #   }
+   #   
+    })
  
    observeEvent(input$mymap_marker_click, { 
      p <- input$mymap_marker_click
@@ -1513,6 +1495,7 @@ server <- function(input, output,session) {
        req(tempertature_IsSelected)
        req(humidity_IsSelected)
        req(intensity_IsSelected)
+       req(input$units)
        
        no2_data <- getData(p$id, 0,1, no2_path)
        co_data <- getData(p$id, 0,1, co_path)
@@ -1577,6 +1560,7 @@ server <- function(input, output,session) {
        req(tempertature_IsSelected)
        req(humidity_IsSelected)
        req(intensity_IsSelected)
+       req(input$units)
        
        no2_data <- getData(p$id, 1, 0, no2_path)
        co_data <- getData(p$id, 1, 0, co_path)
@@ -1640,6 +1624,7 @@ server <- function(input, output,session) {
        req(tempertature_IsSelected)
        req(humidity_IsSelected)
        req(intensity_IsSelected)
+       req(input$units)
        
        no2_data <- getData(p$id, 7, 0, no2_path)
        co_data <- getData(p$id, 7, 0, co_path)
