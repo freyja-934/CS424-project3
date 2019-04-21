@@ -46,9 +46,9 @@ ui <- dashboardPage(
                                selectInput("Maps", "Map Color", map_list, selected = "Default"),
                                menuItem("AoT Dashboards", icon = icon("dashboard"), startExpanded = FALSE,
                                 menuSubItem("Node Map", tabName="map", icon = icon("map")),
-                                menuSubItem("Comparison", tabName="compare", icon = icon("dashboard")),
+                                #menuSubItem("Comparison", tabName="compare", icon = icon("dashboard")),
                                 menuSubItem("Heat Map", tabName="heatmap", icon = icon("map")),
-                                menuSubItem("compare2", tabName="compare2", icon = icon("bullet")),
+                                menuSubItem("Compare Nodes", tabName="compare2", icon = icon("bullet")),
                                 menuSubItem("Resources", tabName="resources", icon = icon("bullet"))),
                                menuItem("Choose AoT Data", icon = icon("dashboard"), startExpanded = FALSE,
                                 checkboxInput("NO2", "NO2", TRUE),
@@ -97,26 +97,27 @@ ui <- dashboardPage(
                       position = "left"
                     )))
              ),
-      tabItem(
-        tabName = "compare",
-        fluidRow(column(6,h4(textOutput("Node 1")),
-              
-               tabsetPanel(type = "tabs",
-                 tabPanel("Current",plotOutput("node1_cur")),
-                 tabPanel("24 Hours", plotOutput("node1_24")),
-                 tabPanel("7 Days",tableOutput("node1_7")),
-                 position = "below"
-               )
-             ),
-             column(6,h4(textOutput("Node 2")),
-                    tabsetPanel( type = "tabs",
-                      tabPanel("Current",plotOutput("node2_cur")),
-                      tabPanel("24 Hours", plotOutput("node2_24")),
-                      tabPanel("7 Days",plotOutput("node2_7")),
-                      position = "left"
-                    )
-             )
-    )),
+    #   tabItem(
+    #     tabName = "compare",
+    #      fluidRow(
+    #        # column(6,h4(textOutput("Node 1")),
+    #     #       
+    #     #        tabsetPanel(type = "tabs",
+    #     #          tabPanel("Current",plotOutput("node1_cur")),
+    #     #          tabPanel("24 Hours", plotOutput("node1_24")),
+    #     #          tabPanel("7 Days",tableOutput("node1_7")),
+    #     #          position = "below"
+    #     #        )
+    #     #      ),
+    #          column(6,h4(textOutput("Node 2")),
+    #                 tabsetPanel( type = "tabs",
+    #                   tabPanel("Current",plotOutput("node2_cur")),
+    #                   tabPanel("24 Hours", plotOutput("node2_24")),
+    #                   tabPanel("7 Days",plotOutput("node2_7")),
+    #                   position = "left"
+    #                 )
+    #          )
+    # )),
     tabItem(
       tabName = "resources",
       h2("Resources used in this project:"),
@@ -165,6 +166,19 @@ ui <- dashboardPage(
     ),
     tabItem(
       tabName = "compare2",
+      fluidRow(h4(textOutput("Node 1")),
+               box(title = "Node 2",
+                   width = 6,
+      tabsetPanel(type = "tabs",
+                  tabPanel("Current",plotOutput("node1_cur")),
+                  tabPanel("24 Hours", plotOutput("node1_24")),
+                  tabPanel("7 Days",tableOutput("node1_7")),
+                  position = "below"
+      )),
+      box( title = "NODE 1 - TEMPERATURE", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("TEMPERATURE_1")),
+      box( title = "NODE 1 - HUMIDITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("HUMIDITY_1")),
+      box( title = "NODE 1 - INTENSITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("INTENSITY_1"))),
+      
       fluidRow(
                box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("NO2_1")),
                box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_1")),
@@ -172,7 +186,23 @@ ui <- dashboardPage(
                box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary",width = 2,dataTableOutput("H2S_1")),
                box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("SO2_1")),
                box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM10_1")),
-               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM25_1"))),
+               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM25_1"))
+               ),
+      
+      fluidRow(h4(textOutput("Node 2")),
+               box(title = "Node 2",
+                   width = 6,
+                      tabsetPanel( type = "tabs",
+                                   tabPanel("Current",plotOutput("node2_cur")),
+                                   tabPanel("24 Hours", plotOutput("node2_24")),
+                                   tabPanel("7 Days",plotOutput("node2_7")),
+                                   position = "left"
+                      
+      )), 
+      box( title = "NODE 2 - TEMPERATURE", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("TEMPERATURE_2")),
+      box( title = "NODE 2 - HUMIDITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("HUMIDITY_2")),
+      box( title = "NODE 2 - INTENSITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("INTENSITY_2"))
+      ),
       fluidRow(
                box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary" ,width = 2, dataTableOutput("NO2_2")),
                box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_2")),
@@ -295,7 +325,8 @@ server <- function(input, output,session) {
                            "chemsense.at1.temperature",
                            "chemsense.at2.temperature",
                            "chemsense.at3.temperature")
-  humidity_path = "chemsense.sht25.humidity"
+ # humidity_path = "chemsense.sht25.humidity"
+  humidity_path = "metsense.hih4030.humidity"
   humidity_paths = list("metsense.hih4030.humidity",
                         "metsense.htu21d.humidity",
                         "chemsense.sht25.humidity")
@@ -586,7 +617,7 @@ server <- function(input, output,session) {
     }
     else{
     data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE, width = 200 )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
   
   output$OZONE_1 <- DT::renderDataTable( 
     DT::datatable({ 
@@ -600,7 +631,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$CO_1 <- DT::renderDataTable(
     DT::datatable({ 
@@ -614,7 +645,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$H2S_1 <- DT::renderDataTable(
     DT::datatable({ 
@@ -628,7 +659,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$SO2_1 <- DT::renderDataTable(
     DT::datatable({ 
@@ -642,7 +673,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM10_1 <- DT::renderDataTable(
     DT::datatable({ 
@@ -656,7 +687,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM25_1 <- DT::renderDataTable(
     DT::datatable({ 
@@ -670,7 +701,56 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+  
+  
+  
+  output$TEMPERATURE_1 <- DT::renderDataTable(
+    DT::datatable({ 
+      req(input$node1Input) 
+      data <- getData(input$node1Input, 0, 1, temperature_path)
+      str(data)
+      Timestamp <- data$timestamp
+      Value <- data$value
+      data <- cbind(Timestamp,Value)
+      if(length(data) == 0 ){
+        stop(paste("No data avaliavle for node: "),input$node1Input)
+      }
+      else{
+        data}
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+  
+  
+  output$HUMIDITY_1 <- DT::renderDataTable(
+    DT::datatable({ 
+      req(input$node1Input) 
+      data <- getData(input$node1Input, 0, 1, humidity_path)
+      str(data)
+      Timestamp <- data$timestamp
+      Value <- data$value
+      data <- cbind(Timestamp,Value)
+      if(length(data) == 0 ){
+        stop(paste("No data avaliavle for node: "),input$node1Input)
+      }
+      else{
+        data}
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+  
+  output$INTENSITY_1 <- DT::renderDataTable(
+    DT::datatable({ 
+      req(input$node1Input) 
+      data <- getData(input$node1Input, 0, 1, intensity_path)
+      str(data)
+      Timestamp <- data$timestamp
+      Value <- data$value
+      data <- cbind(Timestamp,Value)
+      if(length(data) == 0 ){
+        stop(paste("No data avaliavle for node: "),input$node1Input)
+      }
+      else{
+        data}
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+  
   
   ########################### second node
   
@@ -686,7 +766,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$OZONE_2 <- DT::renderDataTable(
     DT::datatable({ 
@@ -700,7 +780,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$CO_2 <- DT::renderDataTable(
     DT::datatable({ 
@@ -714,7 +794,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$H2S_2 <- DT::renderDataTable(
     DT::datatable({ 
@@ -728,7 +808,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$SO2_2 <- DT::renderDataTable(
     DT::datatable({ 
@@ -742,7 +822,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM10_2 <- DT::renderDataTable(
     DT::datatable({ 
@@ -756,7 +836,7 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM25_2 <- DT::renderDataTable(
     DT::datatable({ 
@@ -770,7 +850,50 @@ server <- function(input, output,session) {
     }
     else{
       data}
-  },options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE )))
+  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+  
+  output$TEMPERATURE_2 <- DT::renderDataTable(
+    DT::datatable({ 
+      req(input$node2Input)
+      data <- getData(input$node2Input, 0,1, temperature_path)
+      Timestamp <- data$timestamp
+      Value <- data$value
+      data <- cbind(Timestamp,Value)
+      if(length(data) == 0 ){
+        stop(paste("No data avaliavle for node: "),input$node2Input)
+      }
+      else{
+        data}
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+  
+  output$HUMIDITY_2 <- DT::renderDataTable(
+    DT::datatable({ 
+      req(input$node2Input)
+      data <- getData(input$node2Input, 0,1, humidity_path)
+      Timestamp <- data$timestamp
+      Value <- data$value
+      data <- cbind(Timestamp,Value)
+      if(length(data) == 0 ){
+        stop(paste("No data avaliavle for node: "),input$node2Input)
+      }
+      else{
+        data}
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+  
+  
+  output$INTENSITY_2 <- DT::renderDataTable(
+    DT::datatable({ 
+      req(input$node2Input)
+      data <- getData(input$node2Input, 0,1, intensity_path)
+      Timestamp <- data$timestamp
+      Value <- data$value
+      data <- cbind(Timestamp,Value)
+      if(length(data) == 0 ){
+        stop(paste("No data avaliavle for node: "),input$node2Input)
+      }
+      else{
+        data}
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   getPollutantPaths <- function(){
     pathList = list()
