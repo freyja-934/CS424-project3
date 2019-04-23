@@ -587,297 +587,187 @@ server <- function(input, output,session) {
   }
   
   #########################   first node
-  
-  output$NO2_1 <- DT::renderDataTable(
-    DT::datatable({ 
-    req(input$node1Input) 
-    data <- getData(input$node1Input, 0, 1, no2_path)
+
+  getPollutantData <- function(inp, time, path){
+    day = 0
+    hour = 0
+    
+    if(time == "Current"){
+      day = 0
+      hour = 1
+    }else if(time == "24 Hours"){
+      
+      day = 1
+      hour = 0
+    }else if(time == "7 Days"){
+      day = 7
+      hour = 0
+    } 
+    data <- getData(inp, day, hour, path)
     str(data)
     Timestamp <- data$timestamp
     Value <- data$value
     data <- cbind(Timestamp,Value)
     if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node1Input)
+      stop(paste("No data avaliavle for node: "),inp)
     }
     else{
-    data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+      data}
+  }
+    
+
+  
+  output$NO2_1 <-  DT::renderDataTable(
+    DT::datatable({ 
+      req(input$node1Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, no2_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+    
   
   output$OZONE_1 <- DT::renderDataTable( 
     DT::datatable({ 
     req(input$node1Input)
-    data <- getData(input$node1Input, 0,1, ozone_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node1Input)
-    }
-    else{
-      data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
   },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$CO_1 <- DT::renderDataTable(
     DT::datatable({ 
     req(input$node1Input)
-    data <- getData(input$node1Input, 0,1, co_path) 
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node1Input)
-    }
-    else{
-      data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, co_path)
   },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$H2S_1 <- DT::renderDataTable(
     DT::datatable({ 
     req(input$node1Input)
-    data <- getData(input$node1Input, 0,1, h2s_path) 
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node1Input)
-    }
-    else{
-      data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
   },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$SO2_1 <- DT::renderDataTable(
     DT::datatable({ 
     req(input$node1Input)
-    data <- getData(input$node1Input, 0,1, so2_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node1Input)
-    }
-    else{
-      data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, so2_path)
   },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM10_1 <- DT::renderDataTable(
     DT::datatable({ 
     req(input$node1Input)
-    data <- getData(input$node1Input, 0,1, pm10_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node1Input)
-    }
-    else{
-      data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
   },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM25_1 <- DT::renderDataTable(
     DT::datatable({ 
     req(input$node1Input)
-    data <- getData(input$node1Input, 0,1, pm25_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node1Input)
-    }
-    else{
-      data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
   },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   
   
   output$TEMPERATURE_1 <- DT::renderDataTable(
     DT::datatable({ 
-      req(input$node1Input) 
-      data <- getData(input$node1Input, 0, 1, temperature_path)
-      str(data)
-      Timestamp <- data$timestamp
-      Value <- data$value
-      data <- cbind(Timestamp,Value)
-      if(length(data) == 0 ){
-        stop(paste("No data avaliavle for node: "),input$node1Input)
-      }
-      else{
-        data}
+      req(input$node1Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
   
   
   output$HUMIDITY_1 <- DT::renderDataTable(
     DT::datatable({ 
       req(input$node1Input) 
-      data <- getData(input$node1Input, 0, 1, humidity_path)
-      str(data)
-      Timestamp <- data$timestamp
-      Value <- data$value
-      data <- cbind(Timestamp,Value)
-      if(length(data) == 0 ){
-        stop(paste("No data avaliavle for node: "),input$node1Input)
-      }
-      else{
-        data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
   
   output$INTENSITY_1 <- DT::renderDataTable(
     DT::datatable({ 
       req(input$node1Input) 
-      data <- getData(input$node1Input, 0, 1, intensity_path)
-      str(data)
-      Timestamp <- data$timestamp
-      Value <- data$value
-      data <- cbind(Timestamp,Value)
-      if(length(data) == 0 ){
-        stop(paste("No data avaliavle for node: "),input$node1Input)
-      }
-      else{
-        data}
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
   
   
   ########################### second node
   
-  output$NO2_2 <- DT::renderDataTable(
+  output$NO2_2 <-  DT::renderDataTable(
     DT::datatable({ 
-    req(input$node2Input) 
-    data <- getData(input$node2Input, 0, 1, no2_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node2Input)
-    }
-    else{
-      data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, no2_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
   
-  output$OZONE_2 <- DT::renderDataTable(
+  
+  output$OZONE_2 <- DT::renderDataTable( 
     DT::datatable({ 
-    req(input$node2Input)
-    data <- getData(input$node2Input, 0,1, ozone_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node2Input)
-    }
-    else{
-      data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$CO_2 <- DT::renderDataTable(
     DT::datatable({ 
-    req(input$node2Input)
-    data <- getData(input$node2Input, 0,1, co_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node2Input)
-    }
-    else{
-      data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, co_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$H2S_2 <- DT::renderDataTable(
     DT::datatable({ 
-    req(input$node2Input)
-    data <- getData(input$node2Input, 0,1, h2s_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node2Input)
-    }
-    else{
-      data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$SO2_2 <- DT::renderDataTable(
     DT::datatable({ 
-    req(input$node2Input)
-    data <- getData(input$node2Input, 0,1, so2_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node2Input)
-    }
-    else{
-      data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, so2_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM10_2 <- DT::renderDataTable(
     DT::datatable({ 
-    req(input$node2Input)
-    data <- getData(input$node2Input, 0,1, pm10_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node2Input)
-    }
-    else{
-      data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
   
   output$PM25_2 <- DT::renderDataTable(
     DT::datatable({ 
-    req(input$node2Input)
-    data <- getData(input$node2Input, 0,1, pm25_path)
-    Timestamp <- data$timestamp
-    Value <- data$value
-    data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),input$node2Input)
-    }
-    else{
-      data}
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input)
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+  
+  
   
   output$TEMPERATURE_2 <- DT::renderDataTable(
     DT::datatable({ 
       req(input$node2Input)
-      data <- getData(input$node2Input, 0,1, temperature_path)
-      Timestamp <- data$timestamp
-      Value <- data$value
-      data <- cbind(Timestamp,Value)
-      if(length(data) == 0 ){
-        stop(paste("No data avaliavle for node: "),input$node2Input)
-      }
-      else{
-        data}
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+  
   
   output$HUMIDITY_2 <- DT::renderDataTable(
     DT::datatable({ 
-      req(input$node2Input)
-      data <- getData(input$node2Input, 0,1, humidity_path)
-      Timestamp <- data$timestamp
-      Value <- data$value
-      data <- cbind(Timestamp,Value)
-      if(length(data) == 0 ){
-        stop(paste("No data avaliavle for node: "),input$node2Input)
-      }
-      else{
-        data}
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
+      req(input$node2Input) 
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
   
   output$INTENSITY_2 <- DT::renderDataTable(
     DT::datatable({ 
-      req(input$node2Input)
-      data <- getData(input$node2Input, 0,1, intensity_path)
-      Timestamp <- data$timestamp
-      Value <- data$value
-      data <- cbind(Timestamp,Value)
-      if(length(data) == 0 ){
-        stop(paste("No data avaliavle for node: "),input$node2Input)
-      }
-      else{
-        data}
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+      req(input$node2Input) 
+      req(input$TimeFrame)
+      getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
+    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+  
   
   getPollutantPaths <- function(){
     pathList = list()
