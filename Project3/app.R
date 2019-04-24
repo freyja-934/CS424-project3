@@ -23,6 +23,7 @@ library(qdapTools)
 library(data.table)
 library(jsonlite)
 library(leaflet.extras)
+library(magrittr)
 
 pollutants_list = list("NO2", "Ozone", "CO", "H2S", "SO2", "PM10", "PM25", "Temperature", "Humidity", "Light")
 map_list = list("Default", "Map 1", "Map 2", "Map 3")
@@ -319,22 +320,23 @@ server <- function(input, output,session) {
   
   ################################################################## heat map #############
   
-  output$heatmap <- renderLeaflet({
-    map  <- leaflet() %>% 
-      addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
-      addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Maptile") %>%
-      addProviderTiles(providers$Esri.WorldImagery, group = "Satellite Maptile") %>%
-      addHeatmap(lng = 41, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
-      addHeatmap(lng = 40, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
-      addHeatmap(lng = 39, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
-      addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
-      addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
-      addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
-      setView(41, 50, zoom = 4) %>% 
-      addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile"), options = layersControlOptions(collapsed = FALSE))
-  
-  map
-})
+#   output$heatmap <- renderLeaflet({
+#     map  <- leaflet() %>% 
+#       addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
+#       addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Maptile") %>%
+#       addProviderTiles(providers$Esri.WorldImagery, group = "Satellite Maptile") %>%
+#       addHeatmap(lng = 41, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+#       addHeatmap(lng = 40, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+#       addHeatmap(lng = 39, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+#       addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+#       addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+#       addHeatmap(lng = 38, lat = 57, group = "HeatMap", blur = 11, max = 0.10, radius = 10) %>%
+#       setView(41, 50, zoom = 4) %>% 
+#       addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile"), options = layersControlOptions(collapsed = FALSE))
+#   
+#   map
+# })
+#   
   
   ############################################################ Aot check boxes ##############
   
@@ -528,22 +530,72 @@ server <- function(input, output,session) {
     forecast <- get_forecast_for(lat, lon, curTime)
     return(forecast)
   }
-  
+
   #current weather data (24 hours)
   # Pollutants: temperature, humidity, wind speed, wind bearing, cloud cover, visibility, pressure, ozone, summary
-  getCurForecast <- function(lat, lon){
+  getCurForecast <- function(lon, lat){
     forecast <- getForecast(lat, lon)
     hourly_forecast <- forecast$hourly
     weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
     return(weather_data)
   }
+
+  getDailyForecast <- function(lon, lat){
+    forecast <- getForecast(lat, lon)
+    hourly_forecast <- forecast$current
+    weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
+    weather_data$lat <- lat
+    weather_data$lon <- lon
+    return(weather_data)
+  }
+ 
+  # curForecast <- getDailyForecast(41.83107, -87.61730)
+  # curForecast$Lon <- 41.83107
+  # curForecast$Lat <- -87.61730
+  # 
+  # curForecast2 <- getDailyForecast(41.75124, -87.71299)
+  # curForecast2$Lon <- 41.75124
+  # curForecast2$Lat <- -87.71299
+  # 
+  # curForecast3 <- getDailyForecast(41.72246, -87.57535)
+  # curForecast3$Lon <- 41.72246
+  # curForecast3$Lat <- -87.57535
+  # 
+  # 
+  # res3 <- bind_rows(curForecast, curForecast2, curForecast3)
+  # 
+  # 
+  # 
+  # print(res3)
+  # 
+  # n_locations <- reactive({
+  #   select(allNodeLocations(), Lat, Lon)
+  # 
+  # })
+  # 
+  # res_2 <- reactive({
+  #   loc <- n_locations()
+  #   do.call(rbind, apply(loc, 1, function(z) getDailyForecast(z[1], z[2])))
+  # })
+  # # 
+  # observe({
+  #   print(res_2())
+  #   write.csv(res_2(),'weather_data.csv')
+  # })
+  
+  weather_data <- read.csv("weather_data.csv", header = TRUE)
   
   
+  output$heatmap <- renderLeaflet({
+    leaflet(weather_data) %>% addProviderTiles(providers$CartoDB.Positron) %>%
+      setView( -87.57535, 41.72246, 11 ) %>%
+      addHeatmap(lng = ~lon, lat = ~lat, intensity = ~temperature,
+                 blur = 20, max = 0.05, radius = 15)
+  })
   
   #current weather data in Chicago (24 hours) for selected pollutants 
-  weather_data <- getCurForecast(41.870, -87.647)
+  # weather_data <- getCurForecast(41.870, -87.647)
   
-  print(weather_data)
   
   getData <- function(vsn, d,h, path){
     if(no2_IsSelected() == FALSE & path == no2_path){
@@ -617,158 +669,6 @@ server <- function(input, output,session) {
     
 
   
-  output$NO2_1 <-  DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, no2_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-    
-  
-  output$OZONE_1 <- DT::renderDataTable( 
-    DT::datatable({ 
-    req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$CO_1 <- DT::renderDataTable(
-    DT::datatable({ 
-    req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, co_path)
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$H2S_1 <- DT::renderDataTable(
-    DT::datatable({ 
-    req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$SO2_1 <- DT::renderDataTable(
-    DT::datatable({ 
-    req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, so2_path)
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$PM10_1 <- DT::renderDataTable(
-    DT::datatable({ 
-    req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$PM25_1 <- DT::renderDataTable(
-    DT::datatable({ 
-    req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
-  },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  
-  
-  output$TEMPERATURE_1 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node1Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-  
-  
-  output$HUMIDITY_1 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node1Input) 
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-  
-  output$INTENSITY_1 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node1Input) 
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-  
-  
-  ########################### second node
-  
-  output$NO2_2 <-  DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, no2_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-  
-  
-  output$OZONE_2 <- DT::renderDataTable( 
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$CO_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, co_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$H2S_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$SO2_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, so2_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$PM10_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  output$PM25_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
-  
-  
-  
-  output$TEMPERATURE_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input)
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-  
-  
-  output$HUMIDITY_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input) 
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-  
-  output$INTENSITY_2 <- DT::renderDataTable(
-    DT::datatable({ 
-      req(input$node2Input) 
-      req(input$TimeFrame)
-      getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
-    },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
-  
-  
   getPollutantPaths <- function(){
     pathList = list()
     if(no2_IsSelected()){pathList = c(pathList, no2_path)}
@@ -785,22 +685,7 @@ server <- function(input, output,session) {
   }
   
   
- ################################################### origional 
-  # getPollutantPaths <- function(){
-  #   pathList = list()
-  #   if(no2_IsSelected){pathList = c(pathList, no2_path)}
-  #   if(ozone_IsSelected){pathList = c(pathList, ozone_path)}
-  #   if(co_IsSelected){pathList = c(pathList, co_path)}
-  #   if(h2s_IsSelected){pathList = c(pathList, h2s_path)}
-  #   if(so2_IsSelected){pathList = c(pathList, so2_path)}
-  #   if(pm10_IsSelected){pathList = c(pathList, pm10_paths)}
-  #   if(pm25_IsSelected){pathList = c(pathList, pm25_paths)}
-  #   if(tempertature_IsSelected){pathList = c(pathList, temperature_paths)}
-  #   if(humidity_IsSelected){pathList = c(pathList, humidity_paths)}
-  #   if(intensity_IsSelected){pathList = c(pathList, intensity_path)}
-  #   return(pathList)
-  # }
-  # 
+
   pollutantPaths <- reactive({
     req(no2_IsSelected)
     req(co_IsSelected)
@@ -813,7 +698,6 @@ server <- function(input, output,session) {
     req(humidity_IsSelected)
     req(intensity_IsSelected)
 
-    
     getPollutantPaths()
   })
   
@@ -870,6 +754,29 @@ server <- function(input, output,session) {
     getNodeLocations()
   })
   
+  getAllNodeLocations <- function(){
+    
+    node_addresses <- ls.nodes(filters=list(project='chicago'))
+    
+    node_a <- select(node_addresses, unique('vsn'), 'address', 'location.geometry')
+    locations <- select(node_a, 'vsn', 'address')
+    locations$coordinates <- select(node_a$location.geometry, 'coordinates')
+    dt <- locations$coordinates
+    res <- dt %>%
+      rowwise %>%
+      mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
+      ungroup %>%
+      select(-coordinates)
+    data <- cbind(locations, res)
+    locations <- data
+    return (locations)
+  }
+  
+  allNodeLocations <- reactive({
+    autoInvalidate()
+    getAllNodeLocations()
+  })
+  
   getAllNodes <- function(){
     return (select(ls.nodes(filters=list(project='chicago')), 'vsn'))
   }
@@ -892,7 +799,7 @@ server <- function(input, output,session) {
 
   
 
-  ## !!!!!!!!! Turn these into histograms !!!!!!!!!
+ 
     output$node1_cur <- renderPlot({
       req(input$node1Input)
       req(no2_IsSelected)
@@ -1086,8 +993,8 @@ server <- function(input, output,session) {
     
   
   
-   res <- get_current_forecast(41.870, -87.647)
-   res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
+    #res <- get_current_forecast(41.870, -87.647)
+   # res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
 
    
    output$mymap <- renderLeaflet({
@@ -1243,12 +1150,165 @@ server <- function(input, output,session) {
        }
 
      })
-     
-     
-     
-     
+
    })
   
+   
+   ###### COMPLETED CODE DONT TOUCH######
+   
+   ##### Data tables for node comparisons #######
+   
+   output$NO2_1 <-  DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, no2_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
+   
+   output$OZONE_1 <- DT::renderDataTable( 
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$CO_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, co_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$H2S_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$SO2_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, so2_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$PM10_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$PM25_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   
+   
+   output$TEMPERATURE_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
+   
+   output$HUMIDITY_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input) 
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
+   output$INTENSITY_1 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node1Input) 
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
+   
+   ########################### second node
+   
+   output$NO2_2 <-  DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, no2_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
+   
+   output$OZONE_2 <- DT::renderDataTable( 
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$CO_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, co_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$H2S_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$SO2_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, so2_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$PM10_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   output$PM25_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+   
+   
+   
+   output$TEMPERATURE_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input)
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
+   
+   output$HUMIDITY_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input) 
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
+   output$INTENSITY_2 <- DT::renderDataTable(
+     DT::datatable({ 
+       req(input$node2Input) 
+       req(input$TimeFrame)
+       getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+   
   
 }
 
