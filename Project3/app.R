@@ -270,7 +270,7 @@ server <- function(input, output,session) {
   })
  
 
-  
+
   
   getNodeData2 <- function(vsn, d,h, path){
     if(d==0){
@@ -289,13 +289,13 @@ server <- function(input, output,session) {
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
 
-
+    
     if(length(u) == 0){
       return (u)
     }
     return(select(u,'node_vsn', 'sensor_path', 'timestamp', 'value'))
   }
-  print(getNodeData2("092", 0, 1, "lightsense.tmp421.temperature"))
+ 
   
   no2_path = "chemsense.no2.concentration"
   ozone_path = "chemsense.o3.concentration"
@@ -633,6 +633,7 @@ server <- function(input, output,session) {
     # t = fromJSON("obs.html")
     # u = t$data
     u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
+    print(u)
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
@@ -642,7 +643,7 @@ server <- function(input, output,session) {
     if(length(u) == 0){
       return (u)
     }
-    return(select(subset(u, as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value'))
+    return(select(u,'node_vsn', 'sensor_path', 'timestamp', 'value'))
   }
   
   #########################   first node
@@ -710,8 +711,9 @@ server <- function(input, output,session) {
   
 
 
-
+print("^^^^^^^^^^^")
   theAData <- ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000))
+  print(theAData)
 
   
   observe({
@@ -724,7 +726,10 @@ server <- function(input, output,session) {
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
     path_list = pollutantPaths()
-    c = select(subset(theAData, is.element(sensor_path, path_list) & as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value')
+    print("##################")
+    print(theAData)
+    c = select(subset(theAData, is.element(sensor_path, path_list)), 'node_vsn', 'sensor_path', 'timestamp', 'value')
+    print(c)
     return (c)
   }
 
@@ -739,6 +744,7 @@ server <- function(input, output,session) {
   # Returns all nodes and locations of currently selected items
   getNodeLocations <- function(){
     c <- getNodes("metsense.tsys01.temperature", 0, 1)
+    print(c)
     nodes <- unique(c$node_vsn)
     node_addresses <- subset(ls.nodes(filters=list(project='chicago')), (vsn %in% nodes))
 
@@ -746,6 +752,7 @@ server <- function(input, output,session) {
     locations <- select(node_a, 'vsn', 'address')
     locations$coordinates <- select(node_a$location.geometry, 'coordinates')
     dt <- locations$coordinates
+    print(dt)
     res <- dt %>%
       rowwise %>%
       mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
@@ -1007,8 +1014,9 @@ server <- function(input, output,session) {
    output$mymap <- renderLeaflet({
      req(input$Maps)
      req(pollutantPaths)
+     print("hello")
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
-     
+     print(nodeLocations())
      leaflet(ds) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
