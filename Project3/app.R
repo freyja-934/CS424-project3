@@ -272,23 +272,30 @@ server <- function(input, output,session) {
 
   
   
-  getNodeData2 <- function(vsn, d,h){
+  getNodeData2 <- function(vsn, d,h, path){
+    if(d==0){
+      size="1000"
+    }else if(d==1){
+      size="20000"
+    }else{
+      size = "50000"
+    }
     url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
-    url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&size=50000", sep="")
+    url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&size=",size,"&sensor=",path, sep="")
     s <- download.file(url, "obs.html", quiet = FALSE) 
     t = fromJSON("obs.html")
     u = t$data
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
-    path_list = pollutantPaths()
-    path_list = pollutantPaths()
+
 
     if(length(u) == 0){
       return (u)
     }
-    return(select(subset(u, is.element(sensor_path, path_list) & as.POSIXlt(timestamp, tz="UTC", "%Y-%m-%dT%H:%M") %within% int), 'node_vsn', 'sensor_path', 'timestamp', 'value'))
+    return(select(u,'node_vsn', 'sensor_path', 'timestamp', 'value'))
   }
+  print(getNodeData2("092", 0, 1, "lightsense.tmp421.temperature"))
   
   no2_path = "chemsense.no2.concentration"
   ozone_path = "chemsense.o3.concentration"
