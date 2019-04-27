@@ -633,7 +633,7 @@ server <- function(input, output,session) {
     # t = fromJSON("obs.html")
     # u = t$data
     u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
-    print(u)
+   # print(u)
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
@@ -713,7 +713,7 @@ server <- function(input, output,session) {
 
 print("^^^^^^^^^^^")
   theAData <- ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000))
-  print(theAData)
+  ## print(theAData)
 
   
   observe({
@@ -727,9 +727,9 @@ print("^^^^^^^^^^^")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
     path_list = pollutantPaths()
     print("##################")
-    print(theAData)
+  ## print(theAData)
     c = select(subset(theAData, is.element(sensor_path, path_list)), 'node_vsn', 'sensor_path', 'timestamp', 'value')
-    print(c)
+   ## print(c)
     return (c)
   }
 
@@ -744,7 +744,7 @@ print("^^^^^^^^^^^")
   # Returns all nodes and locations of currently selected items
   getNodeLocations <- function(){
     c <- getNodes("metsense.tsys01.temperature", 0, 1)
-    print(c)
+   ## print(c)
     nodes <- unique(c$node_vsn)
     node_addresses <- subset(ls.nodes(filters=list(project='chicago')), (vsn %in% nodes))
 
@@ -752,7 +752,7 @@ print("^^^^^^^^^^^")
     locations <- select(node_a, 'vsn', 'address')
     locations$coordinates <- select(node_a$location.geometry, 'coordinates')
     dt <- locations$coordinates
-    print(dt)
+  ##  print(dt)
     res <- dt %>%
       rowwise %>%
       mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
@@ -836,7 +836,7 @@ print("^^^^^^^^^^^")
         day = 0
         hour = 1
       }else if(input$TimeFrame == "24 Hours"){
-        print(input$TimeFrame)
+     ##   print(input$TimeFrame)
         day = 1
         hour = 0
       }else if(input$TimeFrame == "7 Days"){
@@ -880,17 +880,25 @@ print("^^^^^^^^^^^")
           myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
         }
         
-
+        
+        #Work here 
         if(input$units == "met"){
           if(length(temperature_data) > 0){
+            print("The Data is in Metric")
+            print(temperature_data)
             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
           }
         }
         else if(input$units == "imp"){
           if(length(temperature_data) > 0){
+           ##Working Convertion
+            temperature_data$TempM <- temperature_data[,'value']*9/5+32
+             print(temperature_data)
+            
             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-            myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
+    
+            myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
           }
         }
         
@@ -900,7 +908,7 @@ print("^^^^^^^^^^^")
         }
         if(length(intensity_data) > 0){
           intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-          myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
+          myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, , group=1, color="Intensity"))
         }
         
         
@@ -934,7 +942,7 @@ print("^^^^^^^^^^^")
         day = 0
         hour = 1
       }else if(input$TimeFrame == "24 Hours"){
-        print(input$TimeFrame)
+      ##  print(input$TimeFrame)
         day = 1
         hour = 0
       }else if(input$TimeFrame == "7 Days"){
@@ -975,6 +983,7 @@ print("^^^^^^^^^^^")
           myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
         }
         
+        
         if(input$units == "met"){
            if(length(temperature_data) > 0){
              temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
@@ -984,7 +993,8 @@ print("^^^^^^^^^^^")
         else if(input$units == "imp"){
           if(length(temperature_data) > 0){
             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-            myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
+            temperature_data$TempM <- temperature_data[,'value']*9/5+32
+            myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
           }
         }
         
@@ -1014,9 +1024,9 @@ print("^^^^^^^^^^^")
    output$mymap <- renderLeaflet({
      req(input$Maps)
      req(pollutantPaths)
-     print("hello")
+    ## print("hello")
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
-     print(nodeLocations())
+   ##  print(nodeLocations())
      leaflet(ds) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
@@ -1092,7 +1102,7 @@ print("^^^^^^^^^^^")
          day = 0
          hour = 1
        }else if(input$TimeFrame == "24 Hours"){
-         print(input$TimeFrame)
+        ## print(input$TimeFrame)
          day = 1
          hour = 0
        }else if(input$TimeFrame == "7 Days"){
@@ -1144,8 +1154,9 @@ print("^^^^^^^^^^^")
          }
          else if(input$units == "imp"){
            if(length(temperature_data) > 0){
+             temperature_data$TempM <- temperature_data[,'value']*9/5+32
              temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
+             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
            }
          }
          
