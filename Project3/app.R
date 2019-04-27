@@ -44,7 +44,7 @@ ui <- dashboardPage(
                                uiOutput("node1Output"),
                                uiOutput("node2Output"),
                                selectInput("TimeFrame", "Time Frame", c("Current", "24 Hours", "7 Days")),
-                               selectInput("Maps", "Map Color", map_list, selected = "Default"),
+                               #selectInput("Maps", "Map Color", map_list, selected = "Default"),
                                menuItem("Dashboards", icon = icon("dashboard"), startExpanded = FALSE,
                                 menuSubItem("Node Map", tabName="map", icon = icon("map")),
                                 #menuSubItem("Comparison", tabName="compare", icon = icon("dashboard")),
@@ -186,46 +186,70 @@ ui <- dashboardPage(
                      "VISIBILITY" = "DS_VISIBILITY_HM",
                      "PRESSURE" = "DS_PRESSURE_HM",
                      "OZONE" = "DS_OZONE_HM",
-                     "SUMMARY" = "DS_SUMMARY_HM"),
+                     "SUMMARY" = "DS_SUMMARY_HM",
+                     "MEAN" = "AQ_MEAN_HM",
+                     "MAX" = "AQ_MAX_HM",
+                     "AVERAGE" = "AQ_AVG_HM"),
                    inline = TRUE
       ))
     ),
     tabItem(
-      tabName = "compare2",
-      fluidRow(h4(textOutput("Node 1")),
-               box(title = "Node 2",
-                   width = 6,
-      plotOutput("node1_cur")),
-      box( title = "NODE 1 - TEMPERATURE", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("TEMPERATURE_1")),
-      box( title = "NODE 1 - HUMIDITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("HUMIDITY_1")),
-      box( title = "NODE 1 - INTENSITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("INTENSITY_1"))),
-      
-      fluidRow(
-               box( title = "NODE 1 - NO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("NO2_1")),
-               box( title = "NODE 1 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_1")),
-               box( title = "NODE 1 - CO", solidHeader = TRUE, status = "primary",width = 2,dataTableOutput("CO_1")),
-               box( title = "NODE 1 - H2S", solidHeader = TRUE, status = "primary",width = 2,dataTableOutput("H2S_1")),
-               box( title = "NODE 1 - SO2", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("SO2_1")),
-               box( title = "NODE 1 - PM10", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM10_1")),
-               box( title = "NODE 1 - PM25", solidHeader = TRUE, status = "primary",width = 1, dataTableOutput("PM25_1"))
-               ),
-      
-      fluidRow(h4(textOutput("Node 2")),
-               box(title = "Node 2",
-                   width = 6,
-                      plotOutput("node2_cur")), 
-      box( title = "NODE 2 - TEMPERATURE", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("TEMPERATURE_2")),
-      box( title = "NODE 2 - HUMIDITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("HUMIDITY_2")),
-      box( title = "NODE 2 - INTENSITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("INTENSITY_2"))
-      ),
-      fluidRow(
-               box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary" ,width = 2, dataTableOutput("NO2_2")),
-               box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_2")),
-               box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("CO_2")),
-               box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("H2S_2")),
-               box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("SO2_2")),
-               box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM10_2")),
-               box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM25_2"))
+      tabName = "compare2", fluidRow(
+          box(title = "Node 1", width= 12, plotOutput("node1_cur")),
+          box(title = "Node 2",width= 12, plotOutput("node2_cur")),
+          
+          box(title = "Node 1", width= 6, tabsetPanel( type = "tabs",
+                       tabPanel("NO2",dataTableOutput("NO2_1")),
+                       tabPanel("CO", dataTableOutput("CO_1")),
+                       tabPanel("H2S", dataTableOutput("H2S_1")),
+                       tabPanel("SO2", dataTableOutput("SO2_1") ),
+                       tabPanel("PM10", dataTableOutput("PM10_1")),
+                       tabPanel("PM25",  dataTableOutput("PM25_1")),
+                       tabPanel("OZONE", dataTableOutput("OZONE_1")),
+                       tabPanel("TEMPERATURE", dataTableOutput("TEMPERATURE_1")),
+                       tabPanel("HUMIDITY", dataTableOutput("HUMIDITY_1")),
+                       tabPanel("INTENSITY", dataTableOutput("INTENSITY_1")))),
+          
+          box(title = "Node 2", width= 6, tabsetPanel( type = "tabs",
+                       tabPanel("NO2",dataTableOutput("NO2_2")),
+                       tabPanel("CO", dataTableOutput("CO_2")),
+                       tabPanel("H2S", dataTableOutput("H2S_2")),
+                       tabPanel("SO2", dataTableOutput("SO2_2") ),
+                       tabPanel("PM10", dataTableOutput("PM10_2")),
+                       tabPanel("PM25",  dataTableOutput("PM25_2")),
+                       tabPanel("OZONE", dataTableOutput("OZONE_2")),
+                       tabPanel("TEMPERATURE", dataTableOutput("TEMPERATURE_2")),
+                       tabPanel("HUMIDITY", dataTableOutput("HUMIDITY_2")),
+                       tabPanel("INTENSITY", dataTableOutput("INTENSITY_2"))))
+                  
+      # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
+      # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
+      # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, )),
+      # 
+      # 
+      #         # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
+      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary", width = 2,),
+      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2,),
+      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2,),
+      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
+      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 1, ),
+      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 1,)
+      #          ),
+      # 
+      # fluidRow(h4(textOutput("Node 2")),
+      #           
+      # box( title = "NODE 2 - TEMPERATURE", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("TEMPERATURE_2")),
+      # box( title = "NODE 2 - HUMIDITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("HUMIDITY_2")),
+      # box( title = "NODE 2 - INTENSITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("INTENSITY_2"))
+      # ),
+      # fluidRow(
+      #          box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary" ,width = 2, dataTableOutput("NO2_2")),
+      #          box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_2")),
+      #          box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("CO_2")),
+      #          box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("H2S_2")),
+      #          box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("SO2_2")),
+      #          box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM10_2")),
+      #          box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM25_2"))
     )
     ),
     
@@ -1126,7 +1150,7 @@ print("^^^^^^^^^^^")
 
    
    output$mymap <- renderLeaflet({
-     req(input$Maps)
+     #req(input$Maps)
      req(pollutantPaths)
     ## print("hello")
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
@@ -1293,7 +1317,7 @@ print("^^^^^^^^^^^")
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, no2_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
    
    output$OZONE_1 <- DT::renderDataTable( 
@@ -1301,42 +1325,42 @@ print("^^^^^^^^^^^")
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$CO_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, co_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$H2S_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$SO2_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, so2_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$PM10_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$PM25_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    
    
@@ -1345,7 +1369,7 @@ print("^^^^^^^^^^^")
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
    
    output$HUMIDITY_1 <- DT::renderDataTable(
@@ -1353,14 +1377,14 @@ print("^^^^^^^^^^^")
        req(input$node1Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
    output$INTENSITY_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
    
    ########################### second node
@@ -1370,7 +1394,7 @@ print("^^^^^^^^^^^")
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, no2_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
    
    output$OZONE_2 <- DT::renderDataTable( 
@@ -1378,42 +1402,42 @@ print("^^^^^^^^^^^")
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$CO_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, co_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$H2S_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$SO2_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, so2_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$PM10_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    output$PM25_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
    
    
    
@@ -1422,7 +1446,7 @@ print("^^^^^^^^^^^")
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
    
    output$HUMIDITY_2 <- DT::renderDataTable(
@@ -1430,14 +1454,14 @@ print("^^^^^^^^^^^")
        req(input$node2Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
    output$INTENSITY_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
-     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
    
   
 }
