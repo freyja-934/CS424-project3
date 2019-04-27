@@ -130,7 +130,8 @@ ui <- dashboardPage(
       h6("librarys used: shiny, DT, AotClient, darksky, ropenaq, lubridate, tidyverse, dplyr, shinydashboard, leaflet, qdapTools, data.table, jsonlite, leaflet.extras, magrittr"),
       h5("Techniques and methods adapted from:"),
       h6("#####################################################3"),
-      h6("https://groups.google.com/forum/#!topic/shiny-discuss/ugNEaHizlck")
+      h6("https://groups.google.com/forum/#!topic/shiny-discuss/ugNEaHizlck"),
+      h6("https://shiny.rstudio.com/reference/shiny/1.0.2/radioButtons.html")
       # h6("  *https://rstudio.github.io/shinydashboard/appearance.html"),
       # h6("  *reshape and melt function from https://www.statmethods.net/management/reshape.html"),
       # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/toString.html"),
