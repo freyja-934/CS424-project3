@@ -45,12 +45,13 @@ ui <- dashboardPage(
                                uiOutput("node2Output"),
                                selectInput("TimeFrame", "Time Frame", c("Current", "24 Hours", "7 Days")),
                                selectInput("Maps", "Map Color", map_list, selected = "Default"),
-                               menuItem("AoT Dashboards", icon = icon("dashboard"), startExpanded = FALSE,
+                               menuItem("Dashboards", icon = icon("dashboard"), startExpanded = FALSE,
                                 menuSubItem("Node Map", tabName="map", icon = icon("map")),
                                 #menuSubItem("Comparison", tabName="compare", icon = icon("dashboard")),
                                 menuSubItem("Heat Map", tabName="heatmap", icon = icon("map")),
-                                menuSubItem("Compare Nodes", tabName="compare2", icon = icon("bullet")),
-                                menuSubItem("Resources", tabName="resources", icon = icon("bullet"))),
+                                menuSubItem("Compare Nodes", tabName="compare2", icon = icon("dashboard")),
+                                menuSubItem("Dark Sky test", tabName="darkskyT", icon = icon("dashboard")),
+                                menuSubItem("OpenAQ test", tabName="openAQT", icon = icon("dashboard"))),
                                menuItem("Choose AoT Data", icon = icon("dashboard"), startExpanded = FALSE,
                                 checkboxInput("NO2", "NO2", TRUE),
                                 checkboxInput("OZONE", "OZONE", TRUE),
@@ -62,8 +63,6 @@ ui <- dashboardPage(
                                 checkboxInput("TEMPERATURE", "TEMPERATURE", FALSE),
                                 checkboxInput("HUMIDITY", "HUMIDITY", FALSE),
                                 checkboxInput("INTENSITY", "INTENSITY", FALSE)),
-                               menuItem("Dark Sky Dashboards", icon = icon("dashboard"), startExpanded = FALSE,
-                                        menuSubItem("Dark Sky test", tabName="darkskyT", icon = icon("bullet"))),
                                menuItem("Choose Dark Sky Data", icon = icon("dashboard"), startExpanded = FALSE,
                                         checkboxInput("TEMPERATURE_DS", "TEMPERATURE", FALSE),
                                         checkboxInput("HUMIDITY_DS", "HUMIDITY", FALSE),
@@ -74,7 +73,16 @@ ui <- dashboardPage(
                                         checkboxInput("PRESSURE", "PRESSURE", FALSE),
                                         checkboxInput("OZONE_DS", "OZONE", TRUE),
                                         checkboxInput("SUMMARY", "SUMMARY", FALSE)
-                                        )
+                                        ),
+                               menuItem("Choose OpenAQ Data", icon = icon("dashboard"), startExpanded = FALSE,
+                                        checkboxInput("PM25_AQ", "PM25", FALSE),
+                                        checkboxInput("PM10_AQ", "PM10", FALSE),
+                                        checkboxInput("SO2_AQ", "SO2", FALSE),
+                                        checkboxInput("NO2_AQ", "NO2", TRUE),
+                                        checkboxInput("O3_AQ", "O3", TRUE),
+                                        checkboxInput("CO_AQ", "CO", TRUE),
+                                        checkboxInput("BC_AQ", "BC", TRUE)),
+                               menuItem("Resources", tabName="resources", icon = icon("bullet"))
                                
                                
                                #temperature, humidity, wind speed, wind bearing, cloud cover, visibility, pressure, ozone, summary
@@ -117,38 +125,40 @@ ui <- dashboardPage(
     tabItem(
       tabName = "resources",
       h2("Resources used in this project:"),
-      h5("All data used is from here: https://aqs.epa.gov/aqsweb/airdata/download_files.html"),
+      h5("All data used is from here: ###########################3"),
       h5("Base Code and Code influence from Professor Andy Johnson, https://www.evl.uic.edu/aej/424/ (week 2)"),
-      h6("librarys used: shiny, shinydashboard, ggplot2, lubridate, DT, jpeg, grid, leaflet, scales, reshape, tidyr, readr"),
+      h6("librarys used: shiny, DT, AotClient, darksky, ropenaq, lubridate, tidyverse, dplyr, shinydashboard, leaflet, qdapTools, data.table, jsonlite, leaflet.extras, magrittr"),
       h5("Techniques and methods adapted from:"),
-      h6("  *https://rstudio.github.io/shinydashboard/appearance.html"),
-      h6("  *reshape and melt function from https://www.statmethods.net/management/reshape.html"),
-      h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/toString.html"),
-      h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/strsplit.html "),
-      h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/sort.html"),
-      h6("  *https://stackoverflow.com/questions/52544228/r-shiny-display-static-text-outside-sidebar-panel"),
-      h6("  *https://stackoverflow.com/questions/12280571/how-can-i-remove-rows-containing-0-of-certain-columns-while-keeping-the-rows-i"),
-      h6("  *https://www.rdocumentation.org/packages/ggplot2/versions/3.1.0/topics/position_stack"),
-      h6("  *http://www.sthda.com/english/wiki/ggplot2-pie-chart-quick-start-guide-r-software-and-data-visualization"),
-      h6("  *https://stackoverflow.com/questions/26869141/conditionally-hiding-data-labels-in-ggplot2-graph"),
-      h6("  *https://www.displayr.com/how-to-make-a-pie-chart-in-r/"),
-      h6("  *https://stackoverflow.com/questions/38126212/how-to-check-if-data-table-has-empty-rows"),
-      h6("  *http://www.cookbook-r.com/Graphs/Bar_and_line_graphs_(ggplot2)/"),
-      h6("  *https://rpubs.com/euclid/343644"),
-      h6("  *http://shiny.rstudio.com/articles/shinyapps.html"),
-      h6("  *https://shiny.rstudio.com/reference/shiny/0.14/updateSelectInput.html"),
-      h6("  *https://gist.github.com/aagarw30/d08c5fb1794cf9b58fa38342db97b697"),
-      h6("  *http://shiny.rstudio.com/articles/shinyapps.html"),
-      h6("  *student who was in office hours on Friday - never got your name"),
-      h6("  *http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/"),
-      h6("  *https://stackoverflow.com/questions/33266157/how-to-add-more-whitespace-to-the-main-panel-in-shiny-dashboard"),
-      h6("  *professor Andy Johnson")
+      h6("#####################################################3"),
+      h6("https://groups.google.com/forum/#!topic/shiny-discuss/ugNEaHizlck")
+      # h6("  *https://rstudio.github.io/shinydashboard/appearance.html"),
+      # h6("  *reshape and melt function from https://www.statmethods.net/management/reshape.html"),
+      # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/toString.html"),
+      # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/strsplit.html "),
+      # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/sort.html"),
+      # h6("  *https://stackoverflow.com/questions/52544228/r-shiny-display-static-text-outside-sidebar-panel"),
+      # h6("  *https://stackoverflow.com/questions/12280571/how-can-i-remove-rows-containing-0-of-certain-columns-while-keeping-the-rows-i"),
+      # h6("  *https://www.rdocumentation.org/packages/ggplot2/versions/3.1.0/topics/position_stack"),
+      # h6("  *http://www.sthda.com/english/wiki/ggplot2-pie-chart-quick-start-guide-r-software-and-data-visualization"),
+      # h6("  *https://stackoverflow.com/questions/26869141/conditionally-hiding-data-labels-in-ggplot2-graph"),
+      # h6("  *https://www.displayr.com/how-to-make-a-pie-chart-in-r/"),
+      # h6("  *https://stackoverflow.com/questions/38126212/how-to-check-if-data-table-has-empty-rows"),
+      # h6("  *http://www.cookbook-r.com/Graphs/Bar_and_line_graphs_(ggplot2)/"),
+      # h6("  *https://rpubs.com/euclid/343644"),
+      # h6("  *http://shiny.rstudio.com/articles/shinyapps.html"),
+      # h6("  *https://shiny.rstudio.com/reference/shiny/0.14/updateSelectInput.html"),
+      # h6("  *https://gist.github.com/aagarw30/d08c5fb1794cf9b58fa38342db97b697"),
+      # h6("  *http://shiny.rstudio.com/articles/shinyapps.html"),
+      # h6("  *student who was in office hours on Friday - never got your name"),
+      # h6("  *http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/"),
+      # h6("  *https://stackoverflow.com/questions/33266157/how-to-add-more-whitespace-to-the-main-panel-in-shiny-dashboard"),
+      # h6("  *professor Andy Johnson")
       
     ),
     tabItem(
       tabName = "heatmap",
       # 
-      leafletOutput("heatmap", height = 1200)
+      leafletOutput("heatmap", height = 1300),
       # column(12,h4(textOutput("Heat Map")),
       #        tabsetPanel( type = "tabs",
       #                     tabPanel("Current",leafletOutput("map1")),
@@ -157,8 +167,28 @@ ui <- dashboardPage(
       #                     position = "left"
       #        )
       # )
-      
-      
+      box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
+                   c("SO2" = "AOT_SO2_HM",
+                     "H2S" = "AOT_H2S_HM",
+                     "O3" = "AOT_O3_HM",
+                     "NO2" = "AOT_NO2_HM",
+                     "CO" = "AOT_CO_HM",
+                     "PM25" = "AOT_PM25_HM",
+                     "PM10" = "AOT_PM10_HM",
+                     "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
+                     "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
+                     "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
+                     "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
+                     "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
+                     "WIND SPEED" = "DS_WIND_SPEED_HM",
+                     "WIND BEARING" = "DS_WIND_BEARING_HM",
+                     "CLOUD COVER" = "DS_CLOUD_COVER_HM",
+                     "VISIBILITY" = "DS_VISIBILITY_HM",
+                     "PRESSURE" = "DS_PRESSURE_HM",
+                     "OZONE" = "DS_OZONE_HM",
+                     "SUMMARY" = "DS_SUMMARY_HM"),
+                   inline = TRUE
+      ))
     ),
     tabItem(
       tabName = "compare2",
@@ -211,6 +241,16 @@ ui <- dashboardPage(
       verbatimTextOutput("PRESSURE"),
       verbatimTextOutput("OZONE_DS"),
       verbatimTextOutput("SUMMARY")
+    ),
+    tabItem(
+      tabName = "openAQT",
+      verbatimTextOutput("PM25_AQ"),
+      verbatimTextOutput("PM10_AQ"),
+      verbatimTextOutput("SO2_AQ"),
+      verbatimTextOutput("NO2_AQ"),
+      verbatimTextOutput("O3_AQ"),
+      verbatimTextOutput("CO_AQ"),
+      verbatimTextOutput("BC_AQ")
     )
     )
   ))
@@ -524,6 +564,70 @@ server <- function(input, output,session) {
       SUMMARY_IsSelected <- TRUE
     }
   })
+  
+  
+  ######################################################################### OPEN AQ CHECKBOXES
+  
+  output$PM25_AQ <- renderText({ input$PM25_AQ })
+  output$PM10_AQ <- renderText({ input$PM10_AQ })
+  output$SO2_AQ <- renderText({ input$SO2_AQ })
+  output$NO2_AQ <- renderText({ input$NO2_AQ })
+  output$O3_AQ <- renderText({ input$O3_AQ })
+  output$CO_AQ <- renderText({ input$CO_AQ })
+  output$BC_AQ <- renderText({ input$BC_AQ })
+  
+  # Use these for the check boxes
+  PM25_AQ_IsSelected <- reactive({
+    if(input$PM25_AQ == FALSE){
+      PM25_AQ_IsSelected <- FALSE
+    }else{
+      PM25_AQ_IsSelected <- TRUE
+    }
+  })
+  PM10_AQ_IsSelected <- reactive({
+    if(input$PM10_AQ == FALSE){
+      PM10_AQ_IsSelected <- FALSE
+    }else{
+      PM10_AQ_IsSelected <- TRUE
+    }
+  })
+  SO2_AQ_IsSelected <- reactive({
+    if(input$SO2_AQ == FALSE){
+      SO2_AQ_IsSelected <- FALSE
+    }else{
+      SO2_AQ_IsSelected <- TRUE
+    }
+  })
+  NO2_AQ_IsSelected <- reactive({
+    if(input$NO2_AQ == FALSE){
+      NO2_AQ_IsSelected <- FALSE
+    }else{
+      NO2_AQ_IsSelected <- TRUE
+    }
+  })
+  O3_AQ_IsSelected <- reactive({
+    if(input$O3_AQ == FALSE){
+      O3_AQ_IsSelected <- FALSE
+    }else{
+      O3_AQ_IsSelected <- TRUE
+    }
+  })
+  CO_AQ_IsSelected <- reactive({
+    if(input$CO_AQ == FALSE){
+      CO_AQ_IsSelected <- FALSE
+    }else{
+      CO_AQ_IsSelected <- TRUE
+    }
+  })
+  BC_AQ_IsSelected <- reactive({
+    if(input$BC_AQ == FALSE){
+      BC_AQ_IsSelected <- FALSE
+    }else{
+      BC_AQ_IsSelected <- TRUE
+    }
+  })
+  
+  
   
   # Coordinates of every county in illinois
   county_coordinates <- read.table(file= "county_coordinates.csv",sep = ",", header = TRUE)
