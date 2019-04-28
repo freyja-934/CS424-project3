@@ -94,13 +94,19 @@ ui <- dashboardPage(
     tabItems(
       tabItem(
         tabName = "map",
-        fluidRow(column(12,
+        fluidRow(column(6,
                     leafletOutput("mymap", height = 1000)
-                    )),
-        fluidRow(
-             column(12, h4(textOutput("Node Data")),
-                    plotOutput("node_data")))
+                    ),
+             column(6,
+                    box(title = "NoDE AOT DATA", solidHeader = TRUE, status = "primary",plotOutput("node_data"),width = 12),
+                    box(title = "NoDE DARK SKY DATA", solidHeader = TRUE, status = "primary",plotOutput("node_DS_data"), width = 12),
+                    box(title = "NoDE AOT DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_table_data"), width = 12),
+                    box(title = "NoDE AOT DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_DS_table_data"), width = 12)
+                    )
+             
+             )
              ),
+        
     #   tabItem(
     #     tabName = "compare",
     #      fluidRow(
@@ -1535,6 +1541,19 @@ print("^^^^^^^^^^^")
        }
 
      })
+     output$node_table_data <- DT::renderDataTable(
+       DT::datatable({
+         
+       }))
+     
+     output$node_DS_data <- renderPlot({
+       
+     })
+     
+     output$node_DS_table_data <- DT::renderDataTable(
+       DT::datatable({
+         
+       }))
 
    })
   
