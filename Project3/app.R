@@ -1144,7 +1144,47 @@ print("^^^^^^^^^^^")
     })
     
     
-  
+    getOpenAqData <- function(d,h){
+      req(PM25_AQ_IsSelected)
+      req(PM10_AQ_IsSelected)
+      req(SO2_AQ_IsSelected)
+      req(NO2_AQ_IsSelected)
+      req(O3_AQ_IsSelected)
+      req(CO_AQ_IsSelected)
+      req(BC_AQ_IsSelected)
+      
+      poll_list = list()
+      
+      if(PM25_AQ_IsSelected()){
+        poll_list = c(poll_list, list("pm25"))
+      }
+      if(PM10_AQ_IsSelected()){
+        poll_list = c(poll_list, list("pm10"))
+      }
+      if(SO2_AQ_IsSelected()){
+        poll_list = c(poll_list, list("so2"))
+      }
+      if(NO2_AQ_IsSelected()){
+        poll_list = c(poll_list, list("no2"))
+      }
+      if(O3_AQ_IsSelected()){
+        poll_list = c(poll_list, list("o3"))
+      }
+      if(CO_AQ_IsSelected()){
+        poll_list = c(poll_list, list("co"))
+      }
+      if(BC_AQ_IsSelected()){
+        poll_list = c(poll_list, list("bc"))
+      }
+      
+      res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
+      dta <- unique(select(subset(res2, is.element(parameter, poll_list)),'latitude', 'longitude', 'location'))
+      dta
+    }
+    
+    observe({
+      print(getOpenAqData(0,1))
+    })
   
     #res <- get_current_forecast(41.870, -87.647)
    # res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
