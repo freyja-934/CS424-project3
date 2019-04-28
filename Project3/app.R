@@ -938,8 +938,7 @@ server <- function(input, output,session) {
           ds <- select(forecast_7(), 'lat', 'lon', 'temperature')
         }
         ds$value <- ds$temperature
-        
-        
+
       }else if(input$dsData == 'DS_HUMIDITY_HM'){
         if(hour == 1){
           ds <- select(forecast_cur(), 'lat', 'lon', 'humidity')
