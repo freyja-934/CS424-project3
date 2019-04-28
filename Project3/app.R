@@ -1650,6 +1650,8 @@ print("^^^^^^^^^^^")
     #res <- get_current_forecast(41.870, -87.647)
    # res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
 
+    
+    
    
    output$mymap <- renderLeaflet({
      #req(input$Maps)
@@ -1684,7 +1686,8 @@ print("^^^^^^^^^^^")
        addProviderTiles(providers$Esri.WorldImagery, group = "Satellite Maptile") %>%
        addProviderTiles(providers$Hydda, group = "Hydda Maptilte") %>%    #Change this to change the different map background types
        addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)%>%
-       addMarkers(~longitude, ~latitude, popup = ~as.character(location), icon = Icon)%>%
+       addMarkers(~longitude, ~latitude, popup = ~as.character(location), icon = Icon, layerId = ~location, label = ~as.character(location))%>%
+       addLegend("bottomright", colors= c("#ff0000", "#0999E6"), labels=c("Aot", "Open_AQ"), title="Node Type")%>%
        
        addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile", "Hydda Maptilte"), options = layersControlOptions(collapsed = FALSE))
     
@@ -1783,6 +1786,26 @@ print("^^^^^^^^^^^")
          hour = 0
          skip = 149
        }
+       
+       location_list <- list("ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
+       
+       if(is.element(p$id, location_list) ){
+         output$node_data <- renderTable({
+           aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id)
+         })
+
+         output$node_data <- renderPlot({
+
+           pm25_data <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc, parameter="pm25")
+
+           myplot <- ggplot() +
+             geom_line(data=pm25_data , aes(timestamp, value, group=1, color="NO2"))
+
+         })
+
+         print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+       }
+       
        
        
        no2_data <- getData(p$id, day,hour, no2_path)
