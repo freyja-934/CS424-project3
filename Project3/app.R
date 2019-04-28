@@ -95,13 +95,15 @@ ui <- dashboardPage(
       tabItem(
         tabName = "map",
         fluidRow(column(6,
-                    leafletOutput("mymap", height = 1000)
+                    leafletOutput("mymap", height = 1000),
+                    box(title = "NoDE OPENAQ DATA", solidHeader = TRUE, status = "primary",plotOutput("node_AQ_data"), width = 12)
                     ),
              column(6,
                     box(title = "NoDE AOT DATA", solidHeader = TRUE, status = "primary",plotOutput("node_data"),width = 12),
                     box(title = "NoDE DARK SKY DATA", solidHeader = TRUE, status = "primary",plotOutput("node_DS_data"), width = 12),
                     box(title = "NoDE AOT DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_table_data"), width = 12),
-                    box(title = "NoDE AOT DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_DS_table_data"), width = 12)
+                    box(title = "NoDE DARK SKY DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_DS_table_data"), width = 12),
+                    box(title = "NoDE OPENAQ TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_AQ_table_data"), width = 12)
                     )
              
              )
@@ -136,9 +138,9 @@ ui <- dashboardPage(
       h6("librarys used: shiny, DT, AotClient, darksky, ropenaq, lubridate, tidyverse, dplyr, shinydashboard, leaflet, qdapTools, data.table, jsonlite, leaflet.extras, magrittr"),
       h5("Techniques and methods adapted from:"),
       h6("#####################################################3"),
-      h6("https://groups.google.com/forum/#!topic/shiny-discuss/ugNEaHizlck"),
-      h6("https://shiny.rstudio.com/reference/shiny/1.0.2/radioButtons.html")
-      # h6("  *https://rstudio.github.io/shinydashboard/appearance.html"),
+      h6("  *https://groups.google.com/forum/#!topic/shiny-discuss/ugNEaHizlck"),
+      h6("  *https://shiny.rstudio.com/reference/shiny/1.0.2/radioButtons.html"),
+      h6("  *https://stackoverflow.com/questions/23279550/select-every-nth-row-from-dataframe")
       # h6("  *reshape and melt function from https://www.statmethods.net/management/reshape.html"),
       # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/toString.html"),
       # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/strsplit.html "),
@@ -207,8 +209,8 @@ ui <- dashboardPage(
     ),
     tabItem(
       tabName = "compare2", fluidRow(
-          box(title = "Node 1", width= 12, plotOutput("node1_cur"), height = 400),
-          box(title = "Node 2",width= 12, plotOutput("node2_cur"), height = 400),
+          box(title = "Node 1", width= 12, plotOutput("node1_cur"), height = 450),
+          box(title = "NODE 2" ,width= 12, plotOutput("node2_cur"), height = 450),
           
           box(title = "Node 1", width= 6, tabsetPanel( type = "tabs",
                        tabPanel("NO2",dataTableOutput("NO2_1")),
@@ -408,11 +410,11 @@ server <- function(input, output,session) {
     }else{
       size = "50000"
     }
-    url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
-    url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&size=",size,"&sensor=",path, sep="")
-    s <- download.file(url, "obs.html", quiet = FALSE) 
-    t = fromJSON("obs.html")
-    u = t$data
+    # url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
+    # url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&size=",size,"&sensor=",path, sep="")
+    # s <- download.file(url, "obs.html", quiet = FALSE) 
+    # t = fromJSON("obs.html")
+    # u = t$data
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
@@ -430,8 +432,8 @@ server <- function(input, output,session) {
   co_path = "chemsense.co.concentration"
   h2s_path = "chemsense.h2s.concentration"
   so2_path = "chemsense.so2.concentration"
-  pm10_path = "alphasense.opc_n2.pm10"
-  pm25_path = "alphasense.opc_n2.pm2_5"
+  pm10_path = "alphasense.opc_n2.pm10" #"alphasense.opc_n2.pm10"
+  pm25_path =  "plantower.pms7003.pm25_atm" #"alphasense.opc_n2.pm2_5"
   temperature_path = "chemsense.at0.temperature"
   temperature_paths = list("lightsense.hih6130.temperature", 
                            "metsense.tmp112.temperature", 
@@ -905,7 +907,7 @@ server <- function(input, output,session) {
     
     sz<-"200"
     if(d == 7){
-      sz <- "3000"
+      sz <- "20000"
     }
     if(d == 1){
       sz <- "9000"
@@ -913,30 +915,36 @@ server <- function(input, output,session) {
     if(h == 1){
       sz <- "500"
     }
-    # url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
-    # url <- paste(url, vsn,"&timestamp=","le:2018-08-01T00:00:00&sensor=", path,"&size=",size,sep="")
-    # s <- download.file(url, "obs.html", quiet = FALSE) 
-    # t = fromJSON("obs.html")
-    # u = t$data
+    #url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
+    #url <- paste(url, vsn,"&timestamp=","le:2018-08-01T00:00:00&sensor=", path,"&size=",sz,sep="")
+    # s <- download.file(url, "/var/tmp/obs", quiet = FALSE)
+    # t = fromJSON("/var/tmp/obs")
+    # # u = t$data
+    #s <- download.file(url, "obs.html", quiet = FALSE)
+    #t = fromJSON("obs.html")
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
+    print("get data  ##########################################################################################")
     if(d == 7 & h ==0){
       # u1 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
-      u2 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz,  timestamp=toString(strftime(gmtTime - days(1), format="le:%Y-%m-%dT%H:%M:%S"))))
-      u3 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(2), format="le:%Y-%m-%dT%H:%M:%S"))))
-      u4 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(3), format="le:%Y-%m-%dT%H:%M:%S"))))
-      u22 <- select(u2, 'node_vsn', 'timestamp', 'value', 'sensor_path')
-      u33 <- select(u3, 'node_vsn', 'timestamp', 'value', 'sensor_path')
-      u44 <- select(u4, 'node_vsn', 'timestamp', 'value', 'sensor_path')
-      u <- rbind(u22, u33, u44)
-      View(u)
+      u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
+      
+      # u3 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(2), format="le:%Y-%m-%dT%H:%M:%S"))))
+      # u4 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(3), format="le:%Y-%m-%dT%H:%M:%S"))))
+      # u22 <- select(u2, 'node_vsn', 'timestamp', 'value', 'sensor_path')
+      # u33 <- select(u3, 'node_vsn', 'timestamp', 'value', 'sensor_path')
+      # u44 <- select(u4, 'node_vsn', 'timestamp', 'value', 'sensor_path')
+      # u <- rbind(u22, u33, u44)
+      # View(u)
     }
     else if(d==1){
       u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
-    }
+
+      }
     else{
       u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - hours(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
-    }
+      print("day 1 ####################################################")
+      }
     # print(u)
     
     if(length(u) == 0){
@@ -945,6 +953,7 @@ server <- function(input, output,session) {
     return(select(u,'node_vsn', 'sensor_path', 'timestamp', 'value'))
   }
   
+  #View(ls.observations(filters=list(project='chicago', sensor="alphasense.opc_n2.pm10", node="072")))
   #########################   first node
 
   getPollutantData <- function(inp, time, path){
@@ -1108,11 +1117,8 @@ print("^^^^^^^^^^^")
                 dt, selected = "072")
   })  
 
-  
 
   
-
- 
     output$node1_cur <- renderPlot({
       req(input$node1Input)
       req(no2_IsSelected)
@@ -1142,8 +1148,9 @@ print("^^^^^^^^^^^")
         day = 7
         hour = 0
       }
-      
+      #print("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhelllloooo")
       no2_data <- getData(input$node1Input, day, hour, no2_path)
+      ozone_data <- getData(input$node1Input, day, hour, ozone_path)
       co_data <- getData(input$node1Input, day, hour, co_path)
       h2s_data <- getData(input$node1Input, day, hour, h2s_path)
       so2_data <- getData(input$node1Input, day, hour, so2_path)
@@ -1153,30 +1160,46 @@ print("^^^^^^^^^^^")
       humidity_data <- getData(input$node1Input, day, hour, humidity_path)
       intensity_data <- getData(input$node1Input, day, hour, intensity_path)
       
-      if(length(no2_data) == 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0){
+      
+      
+      if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
         stop(paste("No data avaliavle for node: "),input$node1Input)
       }
       else{
-        myplot <- ggplot() 
-        if(length(no2_data) >0){
+        if(length(no2_data) > 0){
           no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-          myplot <- myplot + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+          no2_data<- no2_data[c(rep(FALSE,skip),TRUE), ]
+          myplot <- ggplot() + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+        }
+        if(length(ozone_data) > 0){
+          ozone_data $timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          ozone_data<- ozone_data[c(rep(FALSE,skip),TRUE), ]
+          myplot <- ggplot() + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="NO2")) 
         }
         if(length(co_data) > 0 ){
           co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          co_data<- co_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
         }
         if(length(h2s_data) > 0){
           h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          h2s_data<- h2s_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=h2s_data, aes(timestamp, value, group=1, color="H2S"))
         }
         if(length(so2_data) > 0){
           so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          so2_data<- so2_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=so2_data, aes(timestamp, value, group=1, color="SO2"))
         }
         if(length(pm10_data) > 0){
           pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          pm10_data<- pm10_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
+        }
+        if(length(pm25_data) > 0){
+          pm25_data$timestamp <- as.POSIXct(pm25_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          pm25_data<- pm25_data[c(rep(FALSE,skip),TRUE), ]
+          myplot <- myplot + geom_line(data=pm25_data, aes(timestamp, value, group=1, color="PM10"))
         }
         
         
@@ -1186,6 +1209,7 @@ print("^^^^^^^^^^^")
             print("The Data is in Metric")
             print(temperature_data)
             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+            temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
           }
         }
@@ -1194,19 +1218,20 @@ print("^^^^^^^^^^^")
            ##Working Convertion
             temperature_data$TempM <- temperature_data[,'value']*9/5+32
              print(temperature_data)
-            
             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-    
+            temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
           }
         }
         
         if(length(humidity_data) > 0){
           humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          humidity_data<- humidity_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=humidity_data, aes(timestamp, value, group=1, color="Humidity"))
         }
         if(length(intensity_data) > 0){
           intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          intensity_data<- intensity_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, , group=1, color="Intensity"))
         }
         
@@ -1233,22 +1258,44 @@ print("^^^^^^^^^^^")
       req(intensity_IsSelected)
       req(input$units)
       req(input$TimeFrame)
+      # 
+      # day = 0
+      # hour = 0
+      # 
+      # if(input$TimeFrame == "Current"){
+      #   day = 0
+      #   hour = 1
+      # }else if(input$TimeFrame == "24 Hours"){
+      # ##  print(input$TimeFrame)
+      #   day = 1
+      #   hour = 0
+      # }else if(input$TimeFrame == "7 Days"){
+      #   day = 7
+      #   hour = 0
+      # }
+      
       
       day = 0
       hour = 0
+      skip = 0
       
       if(input$TimeFrame == "Current"){
         day = 0
         hour = 1
+        #skip = 4
       }else if(input$TimeFrame == "24 Hours"){
-      ##  print(input$TimeFrame)
+        ## print(input$TimeFrame)
         day = 1
         hour = 0
+        skip = 49
       }else if(input$TimeFrame == "7 Days"){
         day = 7
         hour = 0
+        skip = 149
       }
+      
       no2_data <- getData(input$node2Input, day, hour, no2_path)
+      ozone_data <- getData(input$node1Input, day, hour, ozone_path)
       co_data <- getData(input$node2Input, day, hour, co_path)
       h2s_data <- getData(input$node2Input, day, hour, h2s_path)
       so2_data <- getData(input$node2Input, day, hour, so2_path)
@@ -1258,51 +1305,72 @@ print("^^^^^^^^^^^")
       humidity_data <- getData(input$node2Input, day, hour, humidity_path)
       intensity_data <- getData(input$node2Input, day, hour, intensity_path)
       
-      if(length(no2_data) == 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0){
+      
+      if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
         stop(paste("No data avaliavle for node: "),input$node1Input)
       }
       else{
-        no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-        myplot <- ggplot() +
-          geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+        if(length(no2_data) > 0){
+          no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          no2_data<- no2_data[c(rep(FALSE,skip),TRUE), ]
+          myplot <- ggplot() + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+        }
+        if(length(ozone_data) > 0){
+          ozone_data $timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          ozone_data<- ozone_data[c(rep(FALSE,skip),TRUE), ]
+          myplot <- ggplot() + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="NO2")) 
+        }
         if(length(co_data) > 0 ){
           co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          co_data<- co_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
         }
         if(length(h2s_data) > 0){
           h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          h2s_data<- h2s_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=h2s_data, aes(timestamp, value, group=1, color="H2S"))
         }
         if(length(so2_data) > 0){
           so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          so2_data<- so2_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=so2_data, aes(timestamp, value, group=1, color="SO2"))
         }
         if(length(pm10_data) > 0){
           pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          pm10_data<- pm10_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
         }
-        
+        if(length(pm25_data) > 0){
+          pm25_data$timestamp <- as.POSIXct(pm25_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          pm25_data<- pm25_data[c(rep(FALSE,skip),TRUE), ]
+          myplot <- myplot + geom_line(data=pm25_data, aes(timestamp, value, group=1, color="PM10"))
+        }
         
         if(input$units == "met"){
-           if(length(temperature_data) > 0){
-             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
+          if(length(temperature_data) > 0){
+            temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+            temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
+            myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
           }
         }
         else if(input$units == "imp"){
           if(length(temperature_data) > 0){
-            temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
             temperature_data$TempM <- temperature_data[,'value']*9/5+32
+            temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+            temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
           }
         }
         
+        
         if(length(humidity_data) > 0){
           humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          humidity_data<- humidity_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=humidity_data, aes(timestamp, value, group=1, color="Humidity"))
         }
         if(length(intensity_data) > 0){
           intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+          intensity_data<- intensity_data[c(rep(FALSE,skip),TRUE), ]
           myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
         }
         
@@ -1310,6 +1378,59 @@ print("^^^^^^^^^^^")
         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
         myplot
       }
+      # 
+      # if(length(no2_data) == 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0){
+      #   stop(paste("No data avaliavle for node: "),input$node1Input)
+      # }
+      # else{
+      #   no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #   myplot <- ggplot() +
+      #     geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+      #   if(length(co_data) > 0 ){
+      #     co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #     myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
+      #   }
+      #   if(length(h2s_data) > 0){
+      #     h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #     myplot <- myplot + geom_line(data=h2s_data, aes(timestamp, value, group=1, color="H2S"))
+      #   }
+      #   if(length(so2_data) > 0){
+      #     so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #     myplot <- myplot + geom_line(data=so2_data, aes(timestamp, value, group=1, color="SO2"))
+      #   }
+      #   if(length(pm10_data) > 0){
+      #     pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #     myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
+      #   }
+      #   
+      #   
+      #   if(input$units == "met"){
+      #      if(length(temperature_data) > 0){
+      #        temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #        myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
+      #     }
+      #   }
+      #   else if(input$units == "imp"){
+      #     if(length(temperature_data) > 0){
+      #       temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #       temperature_data$TempM <- temperature_data[,'value']*9/5+32
+      #       myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
+      #     }
+      #   }
+      #   
+      #   if(length(humidity_data) > 0){
+      #     humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #     myplot <- myplot + geom_line(data=humidity_data, aes(timestamp, value, group=1, color="Humidity"))
+      #   }
+      #   if(length(intensity_data) > 0){
+      #     intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+      #     myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
+      #   }
+      #   
+      #   
+      #   myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
+      #   myplot
+      # }
       
     })
     
@@ -1459,24 +1580,44 @@ print("^^^^^^^^^^^")
        req(intensity_IsSelected)
        req(input$units)
        req(input$TimeFrame)
+       # 
+       # day = 0
+       # hour = 0
+       # 
+       # if(input$TimeFrame == "Current"){
+       #   day = 0
+       #   hour = 1
+       # }else if(input$TimeFrame == "24 Hours"){
+       #  ## print(input$TimeFrame)
+       #   day = 1
+       #   hour = 0
+       # }else if(input$TimeFrame == "7 Days"){
+       #   day = 7
+       #   hour = 0
+       # }
        
        day = 0
        hour = 0
+       skip = 0
        
        if(input$TimeFrame == "Current"){
          day = 0
          hour = 1
+         #skip = 4
        }else if(input$TimeFrame == "24 Hours"){
-        ## print(input$TimeFrame)
+         ## print(input$TimeFrame)
          day = 1
          hour = 0
+         skip = 49
        }else if(input$TimeFrame == "7 Days"){
          day = 7
          hour = 0
+         skip = 149
        }
        
        
        no2_data <- getData(p$id, day,hour, no2_path)
+       ozone_data <- getData(p$id, day,hour, ozone_path)
        co_data <- getData(p$id, day,hour, co_path)
        h2s_data <- getData(p$id, day,hour, h2s_path)
        so2_data <- getData(p$id, day,hour, so2_path)
@@ -1486,41 +1627,58 @@ print("^^^^^^^^^^^")
        humidity_data <- getData(p$id, day,hour, humidity_path)
        intensity_data <- getData(p$id, day,hour, intensity_path)
        
-       if(length(no2_data) == 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0){
+       if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
          stop(paste("No data avaliavle for node: "),input$node1Input)
        }
        else{
-         no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-         myplot <- ggplot() +
-           geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+         if(length(no2_data) > 0){
+           no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           no2_data<- no2_data[c(rep(FALSE,skip),TRUE), ]
+           myplot <- ggplot() + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+         }
+         if(length(ozone_data) > 0){
+           ozone_data $timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           ozone_data<- ozone_data[c(rep(FALSE,skip),TRUE), ]
+           myplot <- ggplot() + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="NO2")) 
+         }
          if(length(co_data) > 0 ){
            co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           co_data<- co_data[c(rep(FALSE,skip),TRUE), ]
            myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
          }
          if(length(h2s_data) > 0){
            h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           h2s_data<- h2s_data[c(rep(FALSE,skip),TRUE), ]
            myplot <- myplot + geom_line(data=h2s_data, aes(timestamp, value, group=1, color="H2S"))
          }
          if(length(so2_data) > 0){
            so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           so2_data<- so2_data[c(rep(FALSE,skip),TRUE), ]
            myplot <- myplot + geom_line(data=so2_data, aes(timestamp, value, group=1, color="SO2"))
          }
          if(length(pm10_data) > 0){
            pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           pm10_data<- pm10_data[c(rep(FALSE,skip),TRUE), ]
            myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
          }
-         
+         if(length(pm25_data) > 0){
+           pm25_data$timestamp <- as.POSIXct(pm25_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           pm25_data<- pm25_data[c(rep(FALSE,skip),TRUE), ]
+           myplot <- myplot + geom_line(data=pm25_data, aes(timestamp, value, group=1, color="PM10"))
+         }
          
          if(input$units == "met"){
            if(length(temperature_data) > 0){
-           temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-           myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
+             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
+             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
            }
          }
          else if(input$units == "imp"){
            if(length(temperature_data) > 0){
              temperature_data$TempM <- temperature_data[,'value']*9/5+32
              temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
              myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
            }
          }
@@ -1528,10 +1686,12 @@ print("^^^^^^^^^^^")
          
          if(length(humidity_data) > 0){
            humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           humidity_data<- humidity_data[c(rep(FALSE,skip),TRUE), ]
            myplot <- myplot + geom_line(data=humidity_data, aes(timestamp, value, group=1, color="Humidity"))
          }
          if(length(intensity_data) > 0){
            intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+           intensity_data<- intensity_data[c(rep(FALSE,skip),TRUE), ]
            myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
          }
          
@@ -1539,10 +1699,179 @@ print("^^^^^^^^^^^")
          myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
          myplot
        }
+       
+       # if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
+       #   stop(paste("No data avaliavle for node: "),input$node1Input)
+       # }
+       # else{
+       #   if(length(no2_data) > 0){
+       #    no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- ggplot() + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+       #   }
+       #   if(length(ozone_data) > 0){
+       #     ozone_data $timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- ggplot() + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="NO2")) 
+       #   }
+       #   if(length(co_data) > 0 ){
+       #     co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
+       #   }
+       #   if(length(h2s_data) > 0){
+       #     h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=h2s_data, aes(timestamp, value, group=1, color="H2S"))
+       #   }
+       #   if(length(so2_data) > 0){
+       #     so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=so2_data, aes(timestamp, value, group=1, color="SO2"))
+       #   }
+       #   if(length(pm10_data) > 0){
+       #     pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
+       #   }
+       #   if(length(pm25_data) > 0){
+       #     pm25_data$timestamp <- as.POSIXct(pm25_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=pm25_data, aes(timestamp, value, group=1, color="PM10"))
+       #   }
+       #   
+       #   if(input$units == "met"){
+       #     if(length(temperature_data) > 0){
+       #     temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
+       #     }
+       #   }
+       #   else if(input$units == "imp"){
+       #     if(length(temperature_data) > 0){
+       #       temperature_data$TempM <- temperature_data[,'value']*9/5+32
+       #       temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #       myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
+       #     }
+       #   }
+       #   
+       #   
+       #   if(length(humidity_data) > 0){
+       #     humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=humidity_data, aes(timestamp, value, group=1, color="Humidity"))
+       #   }
+       #   if(length(intensity_data) > 0){
+       #     intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+       #     myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
+       #   }
+       #   
+       #   
+       #   myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
+       #   myplot
+       # }
 
      })
+     
+     ############################################################### AOT TABLE #########################
      output$node_table_data <- DT::renderDataTable(
        DT::datatable({
+         req(no2_IsSelected)
+         req(co_IsSelected)
+         req(ozone_IsSelected)
+         req(so2_IsSelected)
+         req(pm10_IsSelected)
+         req(pm25_IsSelected)
+         req(h2s_IsSelected)
+         req(tempertature_IsSelected)
+         req(humidity_IsSelected)
+         req(intensity_IsSelected)
+         req(input$units)
+         req(input$TimeFrame)
+         
+         day = 0
+         hour = 0
+         skip = 0
+         
+         if(input$TimeFrame == "Current"){
+           day = 0
+           hour = 1
+           #skip = 4
+         }else if(input$TimeFrame == "24 Hours"){
+           ## print(input$TimeFrame)
+           day = 1
+           hour = 0
+           skip = 49
+         }else if(input$TimeFrame == "7 Days"){
+           day = 7
+           hour = 0
+           skip = 149
+         }
+         
+         no2_data <- getData(p$id, day,hour, no2_path)
+         ozone_data <- getData(p$id, day,hour, ozone_path)
+         co_data <- getData(p$id, day,hour, co_path)
+         h2s_data <- getData(p$id, day,hour, h2s_path)
+         so2_data <- getData(p$id, day,hour, so2_path)
+         pm10_data <- getData(p$id, day,hour, pm10_path)
+         pm25_data <- getData(p$id, day,hour, pm25_path)
+         temperature_data <- getData(p$id, day,hour, temperature_path)
+         humidity_data <- getData(p$id, day,hour, humidity_path)
+         intensity_data <- getData(p$id, day,hour, intensity_path)
+         
+         if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
+           stop(paste("No data avaliavle for node: "),input$node1Input)
+         }
+         else{
+           if(length(no2_data) > 0){
+             no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             no2_data <- no2_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           if(length(ozone_data) > 0){
+             ozone_data$timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+              ozone_data<- ozone_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           if(length(co_data) > 0 ){
+             co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             co_data <- co_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           if(length(h2s_data) > 0){
+             h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             h2s_data<- h2s_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           if(length(so2_data) > 0){
+             so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             so2_data<- so2_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           if(length(pm10_data) > 0){
+             pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             pm10_data<- pm10_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           if(length(pm25_data) > 0){
+             pm25_data$timestamp <- as.POSIXct(pm25_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             pm25_data<- pm25_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           
+           if(input$units == "met"){
+             if(length(temperature_data) > 0){
+               temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+               temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
+             }
+           }
+           else if(input$units == "imp"){
+             if(length(temperature_data) > 0){
+               temperature_data$TempM <- temperature_data[,'value']*9/5+32
+               temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+               temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
+             }
+           }
+           
+           
+           if(length(humidity_data) > 0){
+             humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             humidity_data<- humidity_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           if(length(intensity_data) > 0){
+             intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
+             intensity_data<- intensity_data[c(rep(FALSE,skip),TRUE), ]
+           }
+           
+           
+           mytable <- rbind(no2_data,ozone_data,co_data,h2s_data,so2_data,pm10_data,pm25_data,temperature_data,humidity_data,intensity_data)
+           mytable
+         }
+         
          
        }))
      
@@ -1551,6 +1880,15 @@ print("^^^^^^^^^^^")
      })
      
      output$node_DS_table_data <- DT::renderDataTable(
+       DT::datatable({
+         
+       }))
+     
+     output$node_AQ_data <- renderPlot({
+       
+     })
+     
+     output$node_AQ_table_data <- DT::renderDataTable(
        DT::datatable({
          
        }))
@@ -1567,7 +1905,7 @@ print("^^^^^^^^^^^")
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, no2_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    
    output$OZONE_1 <- DT::renderDataTable( 
@@ -1575,42 +1913,42 @@ print("^^^^^^^^^^^")
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$CO_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, co_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$H2S_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$SO2_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, so2_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$PM10_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$PM25_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    
    
@@ -1619,7 +1957,7 @@ print("^^^^^^^^^^^")
        req(input$node1Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    
    output$HUMIDITY_1 <- DT::renderDataTable(
@@ -1627,14 +1965,14 @@ print("^^^^^^^^^^^")
        req(input$node1Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    output$INTENSITY_1 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node1Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    
    ########################### second node
@@ -1644,7 +1982,7 @@ print("^^^^^^^^^^^")
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, no2_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    
    output$OZONE_2 <- DT::renderDataTable( 
@@ -1652,42 +1990,42 @@ print("^^^^^^^^^^^")
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, ozone_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$CO_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, co_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$H2S_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, h2s_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$SO2_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, so2_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$PM10_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm10_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    output$PM25_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, pm25_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
    
    
    
@@ -1696,7 +2034,7 @@ print("^^^^^^^^^^^")
        req(input$node2Input)
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, temperature_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    
    output$HUMIDITY_2 <- DT::renderDataTable(
@@ -1704,14 +2042,14 @@ print("^^^^^^^^^^^")
        req(input$node2Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, humidity_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    output$INTENSITY_2 <- DT::renderDataTable(
      DT::datatable({ 
        req(input$node2Input) 
        req(input$TimeFrame)
        getPollutantData(input$node1Input, input$TimeFrame, intensity_path)
-     },options = list(searching = FALSE, pageLength = 10, lengthChange = FALSE, width = 200 )))
+     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
   
 }
