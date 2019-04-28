@@ -160,6 +160,11 @@ ui <- dashboardPage(
       tabName = "heatmap",
       # 
       leafletOutput("heatmap", height = 1300),
+      radioButtons("dataType", choices = c("AOT"= "AOT_HM", "DARK SKY"= "DARK_SKY_HM"), label = "CHOOSE A DATA SET",inline = TRUE),
+      uiOutput("contents"),
+      uiOutput("contents2")
+      
+      
       # column(12,h4(textOutput("Heat Map")),
       #        tabsetPanel( type = "tabs",
       #                     tabPanel("Current",leafletOutput("map1")),
@@ -168,31 +173,31 @@ ui <- dashboardPage(
       #                     position = "left"
       #        )
       # )
-      box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
-                   c("SO2" = "AOT_SO2_HM",
-                     "H2S" = "AOT_H2S_HM",
-                     "O3" = "AOT_O3_HM",
-                     "NO2" = "AOT_NO2_HM",
-                     "CO" = "AOT_CO_HM",
-                     "PM25" = "AOT_PM25_HM",
-                     "PM10" = "AOT_PM10_HM",
-                     "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
-                     "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
-                     "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
-                     "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
-                     "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
-                     "WIND SPEED" = "DS_WIND_SPEED_HM",
-                     "WIND BEARING" = "DS_WIND_BEARING_HM",
-                     "CLOUD COVER" = "DS_CLOUD_COVER_HM",
-                     "VISIBILITY" = "DS_VISIBILITY_HM",
-                     "PRESSURE" = "DS_PRESSURE_HM",
-                     "OZONE" = "DS_OZONE_HM",
-                     "SUMMARY" = "DS_SUMMARY_HM",
-                     "MEAN" = "AQ_MEAN_HM",
-                     "MAX" = "AQ_MAX_HM",
-                     "AVERAGE" = "AQ_AVG_HM"),
-                   inline = TRUE
-      ))
+      # box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
+      #              c("SO2" = "AOT_SO2_HM",
+      #                "H2S" = "AOT_H2S_HM",
+      #                "O3" = "AOT_O3_HM",
+      #                "NO2" = "AOT_NO2_HM",
+      #                "CO" = "AOT_CO_HM",
+      #                "PM25" = "AOT_PM25_HM",
+      #                "PM10" = "AOT_PM10_HM",
+      #                "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
+      #                "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
+      #                "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
+      #                "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
+      #                "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
+      #                "WIND SPEED" = "DS_WIND_SPEED_HM",
+      #                "WIND BEARING" = "DS_WIND_BEARING_HM",
+      #                "CLOUD COVER" = "DS_CLOUD_COVER_HM",
+      #                "VISIBILITY" = "DS_VISIBILITY_HM",
+      #                "PRESSURE" = "DS_PRESSURE_HM",
+      #                "OZONE" = "DS_OZONE_HM",
+      #                "SUMMARY" = "DS_SUMMARY_HM",
+      #                "MEAN" = "AQ_MEAN_HM",
+      #                "MAX" = "AQ_MAX_HM",
+      #                "AVERAGE" = "AQ_AVG_HM"),
+      #              inline = TRUE
+      # ))
     ),
     tabItem(
       tabName = "compare2", fluidRow(
@@ -334,7 +339,59 @@ server <- function(input, output,session) {
     
   })
  
-
+  
+  ################################ RADIO BUTTONS FOR HEAT MAP ###################################3
+  output$contents <- renderUI({
+    if(input$dataType == "AOT_HM"){
+      radioButtons("aotData", choices = c("SO2" = "AOT_SO2_HM",
+                                          "H2S" = "AOT_H2S_HM",
+                                          "O3" = "AOT_O3_HM",
+                                          "NO2" = "AOT_NO2_HM",
+                                          "CO" = "AOT_CO_HM",
+                                          "PM25" = "AOT_PM25_HM",
+                                          "PM10" = "AOT_PM10_HM",
+                                          "TEMPERATURE" = "AOT_TEMPERATURE_HM",
+                                          "HUMIDITY" = "AOT_HUMIDITY_HM",
+                                          "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM"),
+                   label = "CHOOSE A PARAMETER", inline = TRUE)
+    } else {
+      radioButtons("dsData", choices = c("DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
+                                         "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
+                                         "WIND SPEED" = "DS_WIND_SPEED_HM",
+                                         "WIND BEARING" = "DS_WIND_BEARING_HM",
+                                         "CLOUD COVER" = "DS_CLOUD_COVER_HM",
+                                         "VISIBILITY" = "DS_VISIBILITY_HM",
+                                         "PRESSURE" = "DS_PRESSURE_HM",
+                                         "OZONE" = "DS_OZONE_HM",
+                                         "SUMMARY" = "DS_SUMMARY_HM"),
+                   label = "CHOOSE A PARAMETER", inline = TRUE)
+    } 
+  })
+  
+  output$contents2 <- renderUI({
+    if(input$dataType == "AOT_HM"){
+      radioButtons("aotType", choices = c("MEAN" = "MEAN_HM",
+                                          "MAX" = "MAX_HM",
+                                          "AVERAGE" = "AVG_HM"), 
+                   label = "CHOOSE A DATA TYPE", inline = TRUE)
+    }
+  })
+  
+  observe({
+    req(input$dataType)
+    req(input$aotData)
+    req(input$dsData)
+    req(input$aotType)
+    
+    if(input$dataType == "AOT_HM"){
+      print("aot")
+      print(input$aotType)
+      print(input$aotData)
+    }
+    if(input$dataType == "DARK_SKY_HM"){
+      print(input$dsData)
+    }
+  })
 
   
   getNodeData2 <- function(vsn, d,h, path){
