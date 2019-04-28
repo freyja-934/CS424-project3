@@ -778,12 +778,106 @@ server <- function(input, output,session) {
   
   weather_data <- read.csv("weather_data.csv", header = TRUE)
   
-  
+  getHeatMapData <- function(d,h, path){
+    
+    sz<-"200"
+    if(d == 7){
+      sz <- "100000"
+    }
+    if(d == 1){
+      sz <- "20000"
+    }
+    if(h == 1){
+      sz <- "500"
+    }
+    
+    u <- ls.observations(filters=list(project='chicago',sensor=path, size=sz))
+    
+    path_list = pollutantPaths()
+    
+    if(length(u) == 0){
+      return (u)
+    }
+    return(select(u,'node_vsn', 'value', 'location.geometry'))
+  }
   output$heatmap <- renderLeaflet({
-    leaflet(weather_data) %>% addProviderTiles(providers$CartoDB.Positron) %>%
+    
+    req(input$units_heatmap)
+    path = ""
+    if(input$units_heatmap == 'AOT_SO2_HM'){
+      path = so2_path
+    }else if(input$units_heatmap == 'AOT_H2S_HM'){
+      path = h2s_path
+    }else if(input$units_heatmap == 'AOT_O3_HM'){
+      path = ozone_path
+    }else if(input$units_heatmap == 'AOT_NO2_HM'){
+      path = no2_path
+    }else if(input$units_heatmap == 'AOT_CO_HM'){
+      path = co_path
+    }else if(input$units_heatmap == 'AOT_PM10_HM'){
+      path = pm10_path
+    }else if(input$units_heatmap == 'AOT_TEMPERATURE_HM'){
+      path = temperature_path
+    }else if(input$units_heatmap == 'AOT_HUMIDITY_HM'){
+      path = humidity_path
+    }else if(input$units_heatmap == 'AOT_LIGHT_INTENSITY_HM'){
+      path = intensity_path
+    }
+    else if(input$units_heatmap == 'DS_TEMPERATURE_HM'){
+      
+      
+    }else if(input$units_heatmap == 'DS_HUMIDITY_HM'){
+      
+    }else if(input$units_heatmap == 'DS_WIND_SPEED_HM'){
+      
+    }else if(input$units_heatmap == 'DS_CLOUD_COVER_HM'){
+      
+    }else if(input$units_heatmap == 'DS_VISIBILITY_HM'){
+      
+    }else if(input$units_heatmap == 'DS_PRESSURE_HM'){
+      
+    }else if(input$units_heatmap == 'DS_OZONE_HM'){
+      
+    }
+    
+    datar <- getHeatMapData(0,1, path)
+    loc <- select(datar$location.geometry, 'coordinates')
+    dt <- loc
+    res <- dt %>%
+      rowwise %>%
+      mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
+      ungroup %>%
+      select(-coordinates)
+    data <- cbind(datar, res)
+    locations <- select(data, 'value', 'node_vsn', 'Lat', 'Lon')
+    
+    max <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(max = max(value)) 
+    min <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(min = min(value))
+    mean <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(mean = mean(value))
+    
+    # Mean
+    leaflet(max) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
       setView( -87.57535, 41.72246, 11 ) %>%
-      addHeatmap(lng = ~lon, lat = ~lat, intensity = ~temperature,
+      addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~max,
                  blur = 20, max = 0.05, radius = 15)
+    
+    # Min
+    # leaflet(min) %>% addProviderTiles(providers$CartoDB.Positron) %>%
+    #   setView( -87.57535, 41.72246, 11 ) %>%
+    #   addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~min,
+    #              blur = 20, max = 0.05, radius = 15)
+    # 
+    # Max
+    # leaflet(max) %>% addProviderTiles(providers$CartoDB.Positron) %>%
+    #   setView( -87.57535, 41.72246, 11 ) %>%
+    #   addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~max,
+    #              blur = 20, max = 0.05, radius = 15)
+    
+    # DarkSky Data
+    # leaflet(weather_data) %>% addProviderTiles(providers$CartoDB.Positron) %>%
+    #   setView( -87.57535, 41.72246, 11 ) %>%
+    #   addHeatmap(lng = ~lon, lat = ~lat, intensity = ~temperature,
+    #              blur = 20, max = 0.05, radius = 15)
   })
   
   #current weather data in Chicago (24 hours) for selected pollutants 
@@ -802,30 +896,43 @@ server <- function(input, output,session) {
     if(!tempertature_IsSelected() & path == temperature_path){return(list())}
     if(!humidity_IsSelected() & path == humidity_path){return(list())}
     if(!intensity_IsSelected() & path == intensity_path){return(list())}
-
+    
     sz<-"200"
     if(d == 7){
-      sz <- "100000"
+      sz <- "3000"
     }
     if(d == 1){
-      sz <- "20000"
+      sz <- "9000"
     }
     if(h == 1){
       sz <- "500"
     }
     # url <- "https://api.arrayofthings.org/api/observations?location=chicago&node="
-    # url <- paste(url, vsn,"&timestamp=","ge:2018-08-01T00:00:00&sensor=", path,"&size=",size,sep="")
+    # url <- paste(url, vsn,"&timestamp=","le:2018-08-01T00:00:00&sensor=", path,"&size=",size,sep="")
     # s <- download.file(url, "obs.html", quiet = FALSE) 
     # t = fromJSON("obs.html")
     # u = t$data
-    u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
-   # print(u)
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
-    int <- interval(gmtTime - hours(h) - days(d), gmtTime)
-    path_list = pollutantPaths()
-    path_list = pollutantPaths()
-
+    if(d == 7 & h ==0){
+      # u1 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
+      u2 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz,  timestamp=toString(strftime(gmtTime - days(1), format="le:%Y-%m-%dT%H:%M:%S"))))
+      u3 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(2), format="le:%Y-%m-%dT%H:%M:%S"))))
+      u4 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(3), format="le:%Y-%m-%dT%H:%M:%S"))))
+      u22 <- select(u2, 'node_vsn', 'timestamp', 'value', 'sensor_path')
+      u33 <- select(u3, 'node_vsn', 'timestamp', 'value', 'sensor_path')
+      u44 <- select(u4, 'node_vsn', 'timestamp', 'value', 'sensor_path')
+      u <- rbind(u22, u33, u44)
+      View(u)
+    }
+    else if(d==1){
+      u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
+    }
+    else{
+      u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - hours(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
+    }
+    # print(u)
+    
     if(length(u) == 0){
       return (u)
     }
