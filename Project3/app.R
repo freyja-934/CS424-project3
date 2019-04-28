@@ -36,7 +36,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 PROJECT 3-Group 2", titleWidth = 350 ),
   
   ######################################## CREATE DROP DOWN MENUS IN SIDEBAR + NEW TAB CONTAINING RESOURCES ######################################## 
-  dashboardSidebar(sidebarMenu(disable = FALSE, collapsed = FALSE,  style = "margin-top:500px",
+  dashboardSidebar(sidebarMenu(disable = FALSE, collapsed = FALSE,  style = "margin-top:350px",
                                radioButtons("units", "Units",
                                             c("Metric" = "met",
                                               "Imperial" = "imp")),
@@ -95,7 +95,7 @@ ui <- dashboardPage(
       tabItem(
         tabName = "map",
         fluidRow(column(12,
-                    leafletOutput("mymap", height = 1200)
+                    leafletOutput("mymap", height = 1000)
                     )),
         fluidRow(
              column(12, h4(textOutput("Node Data")),
@@ -159,7 +159,7 @@ ui <- dashboardPage(
     tabItem(
       tabName = "heatmap",
       # 
-      leafletOutput("heatmap", height = 1300),
+      leafletOutput("heatmap", height = 1000),
       radioButtons("dataType", choices = c("AOT"= "AOT_HM", "DARK SKY"= "DARK_SKY_HM"), label = "CHOOSE A DATA SET",inline = TRUE),
       uiOutput("contents"),
       uiOutput("contents2"),
@@ -201,8 +201,8 @@ ui <- dashboardPage(
     ),
     tabItem(
       tabName = "compare2", fluidRow(
-          box(title = "Node 1", width= 12, plotOutput("node1_cur")),
-          box(title = "Node 2",width= 12, plotOutput("node2_cur")),
+          box(title = "Node 1", width= 12, plotOutput("node1_cur"), height = 400),
+          box(title = "Node 2",width= 12, plotOutput("node2_cur"), height = 400),
           
           box(title = "Node 1", width= 6, tabsetPanel( type = "tabs",
                        tabPanel("NO2",dataTableOutput("NO2_1")),
