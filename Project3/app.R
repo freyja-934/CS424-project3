@@ -721,34 +721,34 @@ server <- function(input, output,session) {
   # Coordinates of every county in illinois
   county_coordinates <- read.table(file= "county_coordinates.csv",sep = ",", header = TRUE)
   
-  getForecast <- function(lat, lon){
-    currentTime = Sys.time();
-    gmtTime = as.POSIXct(currentTime)
-    gmtTime <- toString(as.POSIXct(gmtTime, "%Y-%m-%dT%H:%M"))
-    arr <- unlist(strsplit(gmtTime, ' '))
-    curTime <- paste(arr[1], 'T', arr[2], sep="")
-    forecast <- get_forecast_for(lat, lon, curTime)
-    return(forecast)
-  }
-
-  #current weather data (24 hours)
-  # Pollutants: temperature, humidity, wind speed, wind bearing, cloud cover, visibility, pressure, ozone, summary
-  getCurForecast <- function(lon, lat){
-    forecast <- getForecast(lat, lon)
-    hourly_forecast <- forecast$hourly
-    weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
-    return(weather_data)
-  }
-
-  getDailyForecast <- function(lon, lat){
-    forecast <- getForecast(lat, lon)
-    hourly_forecast <- forecast$current
-    weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
-    weather_data$lat <- lat
-    weather_data$lon <- lon
-    return(weather_data)
-  }
- 
+  # getForecast <- function(lat, lon){
+  #   currentTime = Sys.time();
+  #   gmtTime = as.POSIXct(currentTime)
+  #   gmtTime <- toString(as.POSIXct(gmtTime, "%Y-%m-%dT%H:%M"))
+  #   arr <- unlist(strsplit(gmtTime, ' '))
+  #   curTime <- paste(arr[1], 'T', arr[2], sep="")
+  #   forecast <- get_forecast_for(lat, lon, curTime)
+  #   return(forecast)
+  # }
+  # 
+  # #current weather data (24 hours)
+  # # Pollutants: temperature, humidity, wind speed, wind bearing, cloud cover, visibility, pressure, ozone, summary
+  # getCurForecast <- function(lon, lat){
+  #   forecast <- getForecast(lat, lon)
+  #   hourly_forecast <- forecast$hourly
+  #   weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
+  #   return(weather_data)
+  # }
+  # 
+  # getDailyForecast <- function(lon, lat){
+  #   forecast <- getForecast(lat, lon)
+  #   hourly_forecast <- forecast$current
+  #   weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
+  #   weather_data$lat <- lat
+  #   weather_data$lon <- lon
+  #   return(weather_data)
+  # }
+  # 
   # curForecast <- getDailyForecast(41.83107, -87.61730)
   # curForecast$Lon <- 41.83107
   # curForecast$Lat <- -87.61730
@@ -782,6 +782,56 @@ server <- function(input, output,session) {
   #   print(res_2())
   #   write.csv(res_2(),'weather_data.csv')
   # })
+  
+  getForecastData <- function(lat, lon, d, h){
+    
+    if(d == 7){
+      dt <- res7 <- seq(Sys.Date()-7, Sys.Date(), "1 day") %>% 
+        map(~get_forecast_for(lon, lat, .x)) %>% 
+        map_df("hourly")
+    }else if(d == 1){
+      dt <- res7 <- seq(Sys.Date()-1, Sys.Date(), "1 day") %>% 
+        map(~get_forecast_for(lon, lat, .x)) %>% 
+        map_df("hourly")
+    }else if(d == 0){
+      dt <- get_current_forecast(lon, lat)$current
+    }
+    # res7 <- seq(Sys.Date()-7, Sys.Date(), "1 day") %>% 
+    #   map(~get_forecast_for(43.2672, -70.8617, .x)) %>% 
+    #   map_df("hourly")
+    dt$lat <- lat
+    dt$lon <- lon
+    select(dt, 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone')
+  }
+  
+  
+  n_locations <- reactive({
+    loc <- read.csv("county_coordinates.csv", header = TRUE)
+    loc <- select(loc, 'Longitude', 'Latitude')
+    loc
+  })
+  # getCurForecast(41.83107, -87.61730)
+  getForecast <- function(d,h){
+    loc <- n_locations()
+    do.call(rbind, apply(loc, 1, function(z) getForecastData(z[1], z[2], d, h)))
+  }
+  # #
+  # observe({
+  #   print(res_2())
+  #   write.csv(res_2(),'weather_data4.csv')
+  # })
+  forecast_cur <- reactive({
+    getForecast(0,1)
+  })
+  
+  forecast_24 <- reactive({
+    getForecast(1,0)
+  })
+  
+  forecast_7 <- reactive({
+    getForecast(7,0)
+  })
+  
   
   weather_data <- read.csv("weather_data.csv", header = TRUE)
   
