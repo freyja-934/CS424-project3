@@ -377,12 +377,11 @@ server <- function(input, output,session) {
   })
   
   output$contents2 <- renderUI({
-    if(input$dataType == "AOT_HM"){
       radioButtons("aotType", choices = c("MEAN" = "MEAN_HM",
                                           "MAX" = "MAX_HM",
                                           "AVERAGE" = "AVG_HM"), 
                    label = "CHOOSE A DATA TYPE", inline = TRUE)
-    }
+   
   })
   
   observe({
@@ -809,83 +808,183 @@ server <- function(input, output,session) {
     return(select(u,'node_vsn', 'value', 'location.geometry'))
   }
   output$heatmap <- renderLeaflet({
+    req(input$dataType)
+    req(input$aotData)
+    req(input$TimeFrame)
+    print(input$dsData)
     
-    req(input$units_heatmap)
-    path = ""
-    if(input$units_heatmap == 'AOT_SO2_HM'){
-      path = so2_path
-    }else if(input$units_heatmap == 'AOT_H2S_HM'){
-      path = h2s_path
-    }else if(input$units_heatmap == 'AOT_O3_HM'){
-      path = ozone_path
-    }else if(input$units_heatmap == 'AOT_NO2_HM'){
-      path = no2_path
-    }else if(input$units_heatmap == 'AOT_CO_HM'){
-      path = co_path
-    }else if(input$units_heatmap == 'AOT_PM10_HM'){
-      path = pm10_path
-    }else if(input$units_heatmap == 'AOT_TEMPERATURE_HM'){
-      path = temperature_path
-    }else if(input$units_heatmap == 'AOT_HUMIDITY_HM'){
-      path = humidity_path
-    }else if(input$units_heatmap == 'AOT_LIGHT_INTENSITY_HM'){
-      path = intensity_path
-    }
-    else if(input$units_heatmap == 'DS_TEMPERATURE_HM'){
-      
-      
-    }else if(input$units_heatmap == 'DS_HUMIDITY_HM'){
-      
-    }else if(input$units_heatmap == 'DS_WIND_SPEED_HM'){
-      
-    }else if(input$units_heatmap == 'DS_CLOUD_COVER_HM'){
-      
-    }else if(input$units_heatmap == 'DS_VISIBILITY_HM'){
-      
-    }else if(input$units_heatmap == 'DS_PRESSURE_HM'){
-      
-    }else if(input$units_heatmap == 'DS_OZONE_HM'){
-      
+    day = 0
+    hour = 0
+    
+    if(input$TimeFrame == "Current"){
+      day = 0
+      hour = 1
+    }else if(input$TimeFrame == "24 Hours"){
+      ##   print(input$TimeFrame)
+      day = 1
+      hour = 0
+    }else if(input$TimeFrame == "7 Days"){
+      day = 7
+      hour = 0
     }
     
-    datar <- getHeatMapData(0,1, path)
-    loc <- select(datar$location.geometry, 'coordinates')
-    dt <- loc
-    res <- dt %>%
-      rowwise %>%
-      mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
-      ungroup %>%
-      select(-coordinates)
-    data <- cbind(datar, res)
-    locations <- select(data, 'value', 'node_vsn', 'Lat', 'Lon')
     
-    max <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(max = max(value)) 
-    min <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(min = min(value))
-    mean <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(mean = mean(value))
+    if(input$dataType == "AOT_HM"){
+      path = ""
+      if(input$aotData == 'AOT_SO2_HM'){
+        path = so2_path
+      }else if(input$aotData == 'AOT_H2S_HM'){
+        path = h2s_path
+      }else if(input$aotData == 'AOT_O3_HM'){
+        path = ozone_path
+      }else if(input$aotData == 'AOT_NO2_HM'){
+        path = no2_path
+      }else if(input$aotData == 'AOT_CO_HM'){
+        path = co_path
+      }else if(input$aotData == 'AOT_PM10_HM'){
+        path = pm10_path
+      }else if(input$aotData == 'AOT_TEMPERATURE_HM'){
+        path = temperature_path
+      }else if(input$aotData == 'AOT_HUMIDITY_HM'){
+        path = humidity_path
+      }else if(input$aotData == 'AOT_LIGHT_INTENSITY_HM'){
+        path = intensity_path
+      }
+      datar <- getHeatMapData(day,hour, path)
+      loc <- select(datar$location.geometry, 'coordinates')
+      dt <- loc
+      res <- dt %>%
+        rowwise %>%
+        mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
+        ungroup %>%
+        select(-coordinates)
+      data <- cbind(datar, res)
+      locations <- select(data, 'value', 'node_vsn', 'Lat', 'Lon')
+      if(input$aotType == 'MEAN_HM'){
+        dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = mean(value))
+      }
+      else if(input$aotType == 'MIN_HM'){
+        dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = min(value))
+      }
+      else if(input$aotType == 'MAX_HM'){
+        
+        dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = max(value)) 
+      }
+      
+      # Mean
+      leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
+        setView( -87.57535, 41.72246, 11 ) %>%
+        addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~value,
+                   blur = 20, max = 0.05, radius = 15)
+    }else{
+      if(input$dsData == 'DS_TEMPERATURE_HM'){
+        if(hour == 1){
+          ds <- select(forecast_cur(), 'lat', 'lon', 'temperature')
+        }
+        else if(day == 1){
+          ds <- select(forecast_24(), 'lat', 'lon', 'temperature')
+        }
+        else if(day == 7){
+          ds <- select(forecast_7(), 'lat', 'lon', 'temperature')
+        }
+        ds$value <- ds$temperature
+        
+        
+      }else if(input$dsData == 'DS_HUMIDITY_HM'){
+        if(hour == 1){
+          ds <- select(forecast_cur(), 'lat', 'lon', 'humidity')
+        }
+        else if(day == 1){
+          ds <- select(forecast_24(), 'lat', 'lon', 'humidity')
+        }
+        else if(day == 7){
+          ds <- select(forecast_7(), 'lat', 'lon', 'humidity')
+        }
+        ds$value <- ds$humidity
+        
+        
+      }else if(input$dsData == 'DS_WIND_SPEED_HM'){
+        if(hour == 1){
+          ds <- select(forecast_cur(), 'lat', 'lon', 'windSpeed')
+        }
+        else if(day == 1){
+          ds <- select(forecast_24(), 'lat', 'lon', 'windSpeed')
+        }
+        else if(day == 7){
+          ds <- select(forecast_7(), 'lat', 'lon', 'windSpeed')
+        }
+        ds$value <- ds$windSpeed
+        
+        
+      }else if(input$dsData == 'DS_CLOUD_COVER_HM'){
+        if(hour == 1){
+          ds <- select(forecast_cur(), 'lat', 'lon', 'cloudCover')
+        }
+        else if(day == 1){
+          ds <- select(forecast_24(), 'lat', 'lon', 'cloudCover')
+        }
+        else if(day == 7){
+          ds <- select(forecast_7(), 'lat', 'lon', 'cloudCover')
+        }
+        ds$value <- ds$cloudCover
+        
+      }else if(input$dsData == 'DS_VISIBILITY_HM'){
+        if(hour == 1){
+          ds <- select(forecast_cur(), 'lat', 'lon', 'visibility')
+        }
+        else if(day == 1){
+          ds <- select(forecast_24(), 'lat', 'lon', 'visibility')
+        }
+        else if(day == 7){
+          ds <- select(forecast_7(), 'lat', 'lon', 'visibility')
+        }
+        ds$value <- ds$visibility
+        
+        
+      }else if(input$dsData == 'DS_PRESSURE_HM'){
+        if(hour == 1){
+          ds <- select(forecast_cur(), 'lat', 'lon', 'pressure')
+        }
+        else if(day == 1){
+          ds <- select(forecast_24(), 'lat', 'lon', 'pressure')
+        }
+        else if(day == 7){
+          ds <- select(forecast_7(), 'lat', 'lon', 'pressure')
+        }
+        ds$value <- ds$pressure
+        
+      }else if(input$dsData == 'DS_OZONE_HM'){
+        if(hour == 1){
+          ds <- select(forecast_cur(), 'lat', 'lon', 'ozone')
+        }
+        else if(day == 1){
+          ds <- select(forecast_24(), 'lat', 'lon', 'ozone')
+        }
+        else if(day == 7){
+          ds <- select(forecast_7(), 'lat', 'lon', 'ozone')
+        }
+        ds$value <- ds$ozone
+        
+      }
+      
+      if(input$aotType == 'MEAN_HM'){
+        dt <- ds %>% group_by(lat, lon) %>% summarise(value = mean(value))
+      }
+      else if(input$aotType == 'MIN_HM'){
+        dt <- ds %>% group_by(lat, lon) %>% summarise(value = min(value))
+      }
+      else if(input$aotType == 'MAX_HM'){
+        
+        dt <- ds %>% group_by(lat, lon) %>% summarise(value = max(value)) 
+      }
+      
+      leaflet(dt) %>% addProviderTiles(providers$CartoDB.Positron) %>%
+        setView( -87.57535, 41.72246, 11 ) %>%
+        addHeatmap(lng = ~lon, lat = ~lat, intensity = ~value,
+                   blur = 20, max = 0.05, radius = 15)
+    }
     
-    # Mean
-    leaflet(max) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
-      setView( -87.57535, 41.72246, 11 ) %>%
-      addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~max,
-                 blur = 20, max = 0.05, radius = 15)
     
-    # Min
-    # leaflet(min) %>% addProviderTiles(providers$CartoDB.Positron) %>%
-    #   setView( -87.57535, 41.72246, 11 ) %>%
-    #   addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~min,
-    #              blur = 20, max = 0.05, radius = 15)
-    # 
-    # Max
-    # leaflet(max) %>% addProviderTiles(providers$CartoDB.Positron) %>%
-    #   setView( -87.57535, 41.72246, 11 ) %>%
-    #   addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~max,
-    #              blur = 20, max = 0.05, radius = 15)
-    
-    # DarkSky Data
-    # leaflet(weather_data) %>% addProviderTiles(providers$CartoDB.Positron) %>%
-    #   setView( -87.57535, 41.72246, 11 ) %>%
-    #   addHeatmap(lng = ~lon, lat = ~lat, intensity = ~temperature,
-    #              blur = 20, max = 0.05, radius = 15)
   })
   
   #current weather data in Chicago (24 hours) for selected pollutants 
@@ -942,8 +1041,24 @@ server <- function(input, output,session) {
 
       }
     else{
-      u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - hours(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
-      print("day 1 ####################################################")
+      u = tryCatch({
+        ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - hours(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
+      }, 
+      error=function(cond) {
+        
+        print(cond)
+        # Choose a return value in case of error
+        return(list())
+      },
+      warning=function(cond) {
+        
+        
+        print(cond)
+        # Choose a return value in case of warning
+        return(list())
+      }
+      )
+      
       }
     # print(u)
     
@@ -1232,7 +1347,7 @@ print("^^^^^^^^^^^")
         if(length(intensity_data) > 0){
           intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
           intensity_data<- intensity_data[c(rep(FALSE,skip),TRUE), ]
-          myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, , group=1, color="Intensity"))
+          myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
         }
         
         
