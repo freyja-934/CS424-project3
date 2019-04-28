@@ -1348,6 +1348,7 @@ print("^^^^^^^^^^^")
     
     observe({
       print(getOpenAqData(0,1))
+  
     })
   
     #res <- get_current_forecast(41.870, -87.647)
@@ -1357,19 +1358,44 @@ print("^^^^^^^^^^^")
    output$mymap <- renderLeaflet({
      #req(input$Maps)
      req(pollutantPaths)
-    ## print("hello")
+  
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
+     #print(ds)
+     aq <- getOpenAqData() 
+     #print(aq)
+     both <- merge(ds, aq) 
+     
+     
+     icons <- awesomeIcons(
+       icon = 'ios-close',
+       iconColor = 'black',
+       library = 'ion',
+       markerColor = "green"
+     )
+     
+     Icon <- makeIcon(
+       iconUrl = "https://b.kisscc0.com/20180705/qoq/kisscc0-google-maps-pin-google-map-maker-computer-icons-map-pin-2-5b3dc69162bb64.0320443815307751854044.png",
+       iconWidth = 23, iconHeight = 38,
+     
+     )
+     
+   
    ##  print(nodeLocations())
-     leaflet(ds) %>%
+    leaflet(both) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
        addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Maptile") %>%
        addProviderTiles(providers$Esri.WorldImagery, group = "Satellite Maptile") %>%
        addProviderTiles(providers$Hydda, group = "Hydda Maptilte") %>%    #Change this to change the different map background types
        addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)%>%
+       addMarkers(~longitude, ~latitude, popup = ~as.character(location), icon = Icon)%>%
+       
        addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile", "Hydda Maptilte"), options = layersControlOptions(collapsed = FALSE))
     
+ 
+      
      
+       
      # if(input$Maps == "Default"){
      #   leaflet(ds) %>%
      #     addTiles() %>%  # Add default OpenStreetMap map tiles
