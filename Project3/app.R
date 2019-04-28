@@ -162,7 +162,7 @@ ui <- dashboardPage(
       leafletOutput("heatmap", height = 1300),
       radioButtons("dataType", choices = c("AOT"= "AOT_HM", "DARK SKY"= "DARK_SKY_HM"), label = "CHOOSE A DATA SET",inline = TRUE),
       uiOutput("contents"),
-      uiOutput("contents2")
+      uiOutput("contents2"),
       
       
       # column(12,h4(textOutput("Heat Map")),
@@ -173,31 +173,31 @@ ui <- dashboardPage(
       #                     position = "left"
       #        )
       # )
-      # box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
-      #              c("SO2" = "AOT_SO2_HM",
-      #                "H2S" = "AOT_H2S_HM",
-      #                "O3" = "AOT_O3_HM",
-      #                "NO2" = "AOT_NO2_HM",
-      #                "CO" = "AOT_CO_HM",
-      #                "PM25" = "AOT_PM25_HM",
-      #                "PM10" = "AOT_PM10_HM",
-      #                "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
-      #                "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
-      #                "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
-      #                "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
-      #                "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
-      #                "WIND SPEED" = "DS_WIND_SPEED_HM",
-      #                "WIND BEARING" = "DS_WIND_BEARING_HM",
-      #                "CLOUD COVER" = "DS_CLOUD_COVER_HM",
-      #                "VISIBILITY" = "DS_VISIBILITY_HM",
-      #                "PRESSURE" = "DS_PRESSURE_HM",
-      #                "OZONE" = "DS_OZONE_HM",
-      #                "SUMMARY" = "DS_SUMMARY_HM",
-      #                "MEAN" = "AQ_MEAN_HM",
-      #                "MAX" = "AQ_MAX_HM",
-      #                "AVERAGE" = "AQ_AVG_HM"),
-      #              inline = TRUE
-      # ))
+      box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
+                   c("SO2" = "AOT_SO2_HM",
+                     "H2S" = "AOT_H2S_HM",
+                     "O3" = "AOT_O3_HM",
+                     "NO2" = "AOT_NO2_HM",
+                     "CO" = "AOT_CO_HM",
+                     "PM25" = "AOT_PM25_HM",
+                     "PM10" = "AOT_PM10_HM",
+                     "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
+                     "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
+                     "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
+                     "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
+                     "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
+                     "WIND SPEED" = "DS_WIND_SPEED_HM",
+                     "WIND BEARING" = "DS_WIND_BEARING_HM",
+                     "CLOUD COVER" = "DS_CLOUD_COVER_HM",
+                     "VISIBILITY" = "DS_VISIBILITY_HM",
+                     "PRESSURE" = "DS_PRESSURE_HM",
+                     "OZONE" = "DS_OZONE_HM",
+                     "SUMMARY" = "DS_SUMMARY_HM",
+                     "MEAN" = "AQ_MEAN_HM",
+                     "MAX" = "AQ_MAX_HM",
+                     "AVERAGE" = "AQ_AVG_HM"),
+                   inline = TRUE
+      ))
     ),
     tabItem(
       tabName = "compare2", fluidRow(
