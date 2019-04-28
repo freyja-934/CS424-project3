@@ -49,9 +49,9 @@ ui <- dashboardPage(
                                 menuSubItem("Node Map", tabName="map", icon = icon("map")),
                                 #menuSubItem("Comparison", tabName="compare", icon = icon("dashboard")),
                                 menuSubItem("Heat Map", tabName="heatmap", icon = icon("map")),
-                                menuSubItem("Compare Nodes", tabName="compare2", icon = icon("dashboard")),
-                                menuSubItem("Dark Sky test", tabName="darkskyT", icon = icon("dashboard")),
-                                menuSubItem("OpenAQ test", tabName="openAQT", icon = icon("dashboard"))),
+                                menuSubItem("Compare Nodes", tabName="compare2", icon = icon("dashboard"))),
+                                #menuSubItem("Dark Sky test", tabName="darkskyT", icon = icon("dashboard")),
+                                #menuSubItem("OpenAQ test", tabName="openAQT", icon = icon("dashboard"))),
                                menuItem("Choose AoT Data", icon = icon("dashboard"), startExpanded = FALSE,
                                 checkboxInput("NO2", "NO2", TRUE),
                                 checkboxInput("OZONE", "OZONE", TRUE),
@@ -1300,18 +1300,23 @@ print("^^^^^^^^^^^")
       
       day = 0
       hour = 0
+      skip = 0
       
       if(input$TimeFrame == "Current"){
         day = 0
         hour = 1
+        #skip = 4
       }else if(input$TimeFrame == "24 Hours"){
-     ##   print(input$TimeFrame)
+        ## print(input$TimeFrame)
         day = 1
         hour = 0
+        skip = 49
       }else if(input$TimeFrame == "7 Days"){
         day = 7
         hour = 0
+        skip = 149
       }
+      
       #print("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhelllloooo")
       no2_data <- getData(input$node1Input, day, hour, no2_path)
       ozone_data <- getData(input$node1Input, day, hour, ozone_path)
