@@ -95,19 +95,21 @@ ui <- dashboardPage(
       tabItem(
         tabName = "map",
         fluidRow(column(6,
-                    leafletOutput("mymap", height = 1000),
-                    box(title = "NoDE OPENAQ DATA", solidHeader = TRUE, status = "primary",plotOutput("node_AQ_data"), width = 12)
-                    ),
-             column(6,
-                    box(title = "NoDE AOT DATA", solidHeader = TRUE, status = "primary",plotOutput("node_data"),width = 12),
-                    box(title = "NoDE DARK SKY DATA", solidHeader = TRUE, status = "primary",plotOutput("node_DS_data"), width = 12),
-                    box(title = "NoDE AOT DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_table_data"), width = 12),
-                    box(title = "NoDE DARK SKY DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_DS_table_data"), width = 12),
-                    box(title = "NoDE OPENAQ TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_AQ_table_data"), width = 12)
-                    )
-             
-             )
-             ),
+                        htmlOutput("title2"),
+                        leafletOutput("mymap", height = 800),
+                        box(title = "NoDE AOT DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_table_data"), width = 4),
+                        box(title = "NoDE DARK SKY DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_DS_table_data"), width = 4),
+                        box(title = "NoDE OPENAQ TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_AQ_table_data"), width = 4)
+                        
+        ),
+        column(6,
+               box(title = "AOT NODE DATA", solidHeader = TRUE, status = "primary",plotOutput("node_data"),width = 12),
+               box(title = "NoDE DARK SKY DATA", solidHeader = TRUE, status = "primary",plotOutput("node_DS_data"), width = 12),
+               box(title = "NoDE OPENAQ DATA", solidHeader = TRUE, status = "primary",plotOutput("node_AQ_data"), width = 12)
+        )
+        
+        )
+      ),
         
     #   tabItem(
     #     tabName = "compare",
@@ -168,44 +170,35 @@ ui <- dashboardPage(
       tabName = "heatmap",
       # 
       leafletOutput("heatmap", height = 1000),
-      radioButtons("dataType", choices = c("AOT"= "AOT_HM", "DARK SKY"= "DARK_SKY_HM"), label = "CHOOSE A DATA SET",inline = TRUE),
+      radioButtons("dataType", choices = c("AOT"= "AOT_HM", "DARK SKY"= "DARK_SKY_HM", "OPEN_AQ" = "OPENAQ_HM"), label = "CHOOSE A DATA SET",inline = TRUE),
       uiOutput("contents"),
-      uiOutput("contents2"),
-      
-      
-      # column(12,h4(textOutput("Heat Map")),
-      #        tabsetPanel( type = "tabs",
-      #                     tabPanel("Current",leafletOutput("map1")),
-      #                     tabPanel("24 Hours", leafletOutput("map24")),
-      #                     tabPanel("7 Days", leafletOutput("map7")),
-      #                     position = "left"
-      #        )
-      # )
-      box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
-                   c("SO2" = "AOT_SO2_HM",
-                     "H2S" = "AOT_H2S_HM",
-                     "O3" = "AOT_O3_HM",
-                     "NO2" = "AOT_NO2_HM",
-                     "CO" = "AOT_CO_HM",
-                     "PM25" = "AOT_PM25_HM",
-                     "PM10" = "AOT_PM10_HM",
-                     "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
-                     "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
-                     "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
-                     "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
-                     "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
-                     "WIND SPEED" = "DS_WIND_SPEED_HM",
-                     "WIND BEARING" = "DS_WIND_BEARING_HM",
-                     "CLOUD COVER" = "DS_CLOUD_COVER_HM",
-                     "VISIBILITY" = "DS_VISIBILITY_HM",
-                     "PRESSURE" = "DS_PRESSURE_HM",
-                     "OZONE" = "DS_OZONE_HM",
-                     "SUMMARY" = "DS_SUMMARY_HM",
-                     "MEAN" = "AQ_MEAN_HM",
-                     "MAX" = "AQ_MAX_HM",
-                     "AVERAGE" = "AQ_AVG_HM"),
-                   inline = TRUE
-      ))
+      uiOutput("contents2")
+# 
+#       box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
+#                    c("SO2" = "AOT_SO2_HM",
+#                      "H2S" = "AOT_H2S_HM",
+#                      "O3" = "AOT_O3_HM",
+#                      "NO2" = "AOT_NO2_HM",
+#                      "CO" = "AOT_CO_HM",
+#                      "PM25" = "AOT_PM25_HM",
+#                      "PM10" = "AOT_PM10_HM",
+#                      "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
+#                      "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
+#                      "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
+#                      "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
+#                      "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
+#                      "WIND SPEED" = "DS_WIND_SPEED_HM",
+#                      "WIND BEARING" = "DS_WIND_BEARING_HM",
+#                      "CLOUD COVER" = "DS_CLOUD_COVER_HM",
+#                      "VISIBILITY" = "DS_VISIBILITY_HM",
+#                      "PRESSURE" = "DS_PRESSURE_HM",
+#                      "OZONE" = "DS_OZONE_HM",
+#                      "SUMMARY" = "DS_SUMMARY_HM",
+#                      "MEAN" = "AQ_MEAN_HM",
+#                      "MAX" = "AQ_MAX_HM",
+#                      "AVERAGE" = "AQ_AVG_HM"),
+#                    inline = TRUE
+#       ))
     ),
     tabItem(
       tabName = "compare2", fluidRow(
@@ -362,7 +355,7 @@ server <- function(input, output,session) {
                                           "HUMIDITY" = "AOT_HUMIDITY_HM",
                                           "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM"),
                    label = "CHOOSE A PARAMETER", inline = TRUE)
-    } else {
+    } else if(input$dataType == "DARK_SKY_HM"){
       radioButtons("dsData", choices = c("DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
                                          "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
                                          "WIND SPEED" = "DS_WIND_SPEED_HM",
@@ -373,7 +366,17 @@ server <- function(input, output,session) {
                                          "OZONE" = "DS_OZONE_HM",
                                          "SUMMARY" = "DS_SUMMARY_HM"),
                    label = "CHOOSE A PARAMETER", inline = TRUE)
-    } 
+    }
+    else{
+      radioButtons("aotData", choices = c("SO2" = "AQ_SO2_HM",
+                                          "O3" = "AQ_O3_HM",
+                                          "NO2" = "AQ_NO2_HM",
+                                          "CO" = "AQ_CO_HM",
+                                          "PM25" = "AQ_PM25_HM",
+                                          "PM10" = "AQ_PM10_HM",
+                                          "BC" = "AQ_BC_HM"),
+                   label = "CHOOSE A PARAMETER", inline = TRUE)
+    }
   })
   
   output$contents2 <- renderUI({
@@ -1751,7 +1754,28 @@ print("^^^^^^^^^^^")
     observeEvent(input$mymap_marker_click, { 
      p <- input$mymap_marker_click
      
+     output$title2 <- renderText({
+       dt_loc <- nodeLocations()
+       dt_loc <- subset(dt_loc, vsn ==p$id)
+       if(is.element(p$id, location_list )){
+         my_address <- "No Address Provided"
+       }
+       else {my_address <- toString(dt_loc$address)}
+       
+       
+       #print(my_address)
+       
+       nameN<-toString(p$id)
+       nameN2<- paste("<font size='6' color=\"#4286f4\"><b>", "NODE ID:", nameN,  "<BR>", "NODE ADDRESS:",my_address, sep = " ")
+       nameN2
+     })
+     
      if(is.element(p$id, location_list ) ){
+       output$node_data <- renderPlot({})
+       output$node_DS_data <- renderPlot({})
+       output$node_DS_table_data <- DT::renderDataTable(DT::datatable({ }))
+       output$node_table_data <- DT::renderDataTable(DT::datatable({ }))
+       
        output$node_AQ_table_data <- DT::renderDataTable({ 
          DT::datatable({ 
            select(getOpenAqData_(0,1,p$id), 'parameter', 'value', 'dateLocal')
@@ -1859,6 +1883,8 @@ print("^^^^^^^^^^^")
       }
        })
      }else{
+       output$node_AQ_table_data <- DT::renderDataTable({ })
+       output$node_AQ_data <- renderPlot({})
  
        output$node_DS_table_data <- DT::renderDataTable({ 
          DT::datatable({ 
