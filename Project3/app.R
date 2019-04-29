@@ -53,16 +53,16 @@ ui <- dashboardPage(
                                 #menuSubItem("Dark Sky test", tabName="darkskyT", icon = icon("dashboard")),
                                 #menuSubItem("OpenAQ test", tabName="openAQT", icon = icon("dashboard"))),
                                menuItem("Choose AoT Data", icon = icon("dashboard"), startExpanded = FALSE,
-                                checkboxInput("NO2", "NO2", TRUE),
-                                checkboxInput("OZONE", "OZONE", TRUE),
-                                checkboxInput("CO", "CO", TRUE),
-                                checkboxInput("H2S", "H2S", FALSE),
-                                checkboxInput("SO2", "SO2", FALSE),
-                                checkboxInput("PM10", "PM10", FALSE),
-                                checkboxInput("PM25", "PM25", FALSE),
-                                checkboxInput("TEMPERATURE", "TEMPERATURE", FALSE),
-                                checkboxInput("HUMIDITY", "HUMIDITY", FALSE),
-                                checkboxInput("INTENSITY", "INTENSITY", FALSE)),
+                                        checkboxInput("NO2", "NO2", TRUE),
+                                        checkboxInput("OZONE", "OZONE", TRUE),
+                                        checkboxInput("CO", "CO", TRUE),
+                                        checkboxInput("H2S", "H2S", FALSE),
+                                        checkboxInput("SO2", "SO2", FALSE),
+                                        checkboxInput("PM10", "PM10", FALSE),
+                                        checkboxInput("PM25", "PM25", FALSE),
+                                        checkboxInput("TEMPERATURE", "TEMPERATURE", FALSE),
+                                        checkboxInput("HUMIDITY", "HUMIDITY", FALSE),
+                                        checkboxInput("INTENSITY", "INTENSITY", FALSE)),
                                menuItem("Choose Dark Sky Data", icon = icon("dashboard"), startExpanded = FALSE,
                                         checkboxInput("TEMPERATURE_DS", "TEMPERATURE", TRUE),
                                         checkboxInput("HUMIDITY_DS", "HUMIDITY", FALSE),
@@ -71,7 +71,7 @@ ui <- dashboardPage(
                                         checkboxInput("CLOUDCOVER", "CLOUD COVER", FALSE),
                                         checkboxInput("VISIBILITY", "VISIBILITY", FALSE),
                                         checkboxInput("PRESSURE", "PRESSURE", FALSE),
-                                        checkboxInput("OZONE_DS", "OZONE", TRUE),
+                                        checkboxInput("OZONE_DS", "OZONE", FALSE),
                                         checkboxInput("SUMMARY", "SUMMARY", FALSE)
                                         ),
                                menuItem("Choose OpenAQ Data", icon = icon("dashboard"), startExpanded = FALSE,
@@ -98,8 +98,8 @@ ui <- dashboardPage(
                         htmlOutput("title2"),
                         leafletOutput("mymap", height = 800),
                         box(title = "NoDE AOT DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_table_data"), width = 4),
-                        box(title = "NoDE DARK SKY DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_DS_table_data"), width = 4),
-                        box(title = "NoDE OPENAQ TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_AQ_table_data"), width = 4)
+                        box(title = "NoDE DARK SKY DATA TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_DS_table_data"), width = 6),
+                        box(title = "NoDE OPENAQ TABLE", solidHeader = TRUE, status = "primary",dataTableOutput("node_AQ_table_data"), width = 2)
                         
         ),
         column(6,
@@ -142,9 +142,9 @@ ui <- dashboardPage(
       h6("#####################################################3"),
       h6("  *https://groups.google.com/forum/#!topic/shiny-discuss/ugNEaHizlck"),
       h6("  *https://shiny.rstudio.com/reference/shiny/1.0.2/radioButtons.html"),
-      h6("  *https://stackoverflow.com/questions/23279550/select-every-nth-row-from-dataframe")
-      # h6("  *reshape and melt function from https://www.statmethods.net/management/reshape.html"),
-      # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/toString.html"),
+      h6("  *https://stackoverflow.com/questions/23279550/select-every-nth-row-from-dataframe"),
+      h6("  *http://www.sthda.com/english/wiki/ggplot2-line-plot-quick-start-guide-r-software-and-data-visualization"),
+      h6("  *https://stackoverflow.com/questions/28008177/r-language-how-to-print-the-first-or-last-rows-of-a-data-set"),
       # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/strsplit.html "),
       # h6("  *https://stat.ethz.ch/R-manual/R-devel/library/base/html/sort.html"),
       # h6("  *https://stackoverflow.com/questions/52544228/r-shiny-display-static-text-outside-sidebar-panel"),
@@ -163,7 +163,7 @@ ui <- dashboardPage(
       # h6("  *student who was in office hours on Friday - never got your name"),
       # h6("  *http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/"),
       # h6("  *https://stackoverflow.com/questions/33266157/how-to-add-more-whitespace-to-the-main-panel-in-shiny-dashboard"),
-      # h6("  *professor Andy Johnson")
+      h6("  *professor Andy Johnson")
       
     ),
     tabItem(
@@ -627,13 +627,6 @@ server <- function(input, output,session) {
       OZONE_DS_IsSelected <- TRUE
     }
   })
-  humidity_IsSelected <- reactive({
-    if(input$HUMIDITY == FALSE){
-      humidity_IsSelected <- FALSE
-    }else{
-      humidity_IsSelected <- TRUE
-    }
-  })
   SUMMARY_IsSelected <- reactive({
     if(input$SUMMARY == FALSE){
       SUMMARY_IsSelected <- FALSE
@@ -720,13 +713,17 @@ server <- function(input, output,session) {
         map(~get_forecast_for(lon, lat, .x)) %>% 
         map_df("hourly")
     }else if(d == 0){
-      dt <- get_current_forecast(lon, lat)$current
+      #dt <- get_current_forecast(lon, lat)$current
+      longdata <- get_current_forecast(lon, lat)$hourly
+      longdata<- tail(longdata,3)
+       dt <- longdata
     }
    
     dt$lat <- lat
     dt$lon <- lon
-    select(dt, 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone', 'lat', 'lon')
-  }
+    #select(dt, 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone', 'lat', 'lon')
+    select(dt, 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone', 'summary','windBearing','cloudCover' , 'lat', 'lon')
+    }
   
   
   n_locations <- reactive({
@@ -1612,6 +1609,56 @@ server <- function(input, output,session) {
       res2
     }
     
+    getDSData_ <- function(d,h, lon, lat){
+      req(TEMPERATURE_DS_IsSelected)
+      req(HUMIDITY_DS_IsSelected )
+      req(WINDSPEED_IsSelected)
+      req(WINDBEARING_IsSelected)
+      req(CLOUDCOVER_IsSelected)
+      req(VISIBILITY_IsSelected)
+      req(PRESSURE_IsSelected)
+      req(OZONE_DS_IsSelected)
+      req(SUMMARY_IsSelected)
+      
+      res2 <- getForecastData(lon, lat, d, h)
+      
+      res3<- res2
+      #view(res3)
+      
+      if(!TEMPERATURE_DS_IsSelected()){
+        res2 <- select(res2,-'temperature')
+      }
+      if(!HUMIDITY_DS_IsSelected()){
+        res2 <- select(res2,-'humidity')
+      }
+      if(!WINDSPEED_IsSelected()){
+        res2 <- select(res2,-'windSpeed')
+      }
+      if(!WINDBEARING_IsSelected()){
+        res2 <- select(res2,-'windBearing')
+      }
+      if(!CLOUDCOVER_IsSelected()){
+        res2 <- select(res2,-'cloudCover')
+      }
+      if(!VISIBILITY_IsSelected()){
+        res2 <- select(res2,-'visibility')
+      }
+      if(!PRESSURE_IsSelected()){
+        res2 <- select(res2,-'pressure')
+      }
+      if(!OZONE_DS_IsSelected()){
+        res2 <- select(res2,-'ozone')
+      }
+      if(!SUMMARY_IsSelected()){
+        res2 <- select(res2,-'summary')
+      }
+      #view(res2)
+      
+      
+      res2
+    }
+    
+    
   
   
     #res <- get_current_forecast(41.870, -87.647)
@@ -1877,6 +1924,30 @@ server <- function(input, output,session) {
        output$node_AQ_table_data <- DT::renderDataTable({ })
        output$node_AQ_data <- renderPlot({})
  
+       output$node_DS_data <- renderPlot({
+         req(input$TimeFrame)
+         day = 0
+         hour = 0
+         
+         if(input$TimeFrame == "Current"){
+           day = 0
+           hour = 1
+         }else if(input$TimeFrame == "24 Hours"){
+           day = 1
+           hour = 0
+           
+         }else if(input$TimeFrame == "7 Days"){
+           day = 7
+           hour = 0
+         }
+         tableDS<- getForecastData(p$lng, p$lat, day, hour)
+         #view(tableDS)
+         ggplot(data=tableDS, aes(x=tableDS$time, y=tableDS$temperature, group=1)) +
+           geom_line()+
+           geom_point()
+         
+       })
+       
        output$node_DS_table_data <- DT::renderDataTable({ 
          DT::datatable({ 
            req(input$TimeFrame)
@@ -1894,7 +1965,9 @@ server <- function(input, output,session) {
              day = 7
              hour = 0
            }
-           getForecastData(p$lng, p$lat, day, hour)
+           res2<-getDSData_(day, hour, p$lng, p$lat)
+           res2 <- select(res2,-'lat')
+           res2 <- select(res2,-'lon')
 
          },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
          
@@ -2127,7 +2200,7 @@ server <- function(input, output,session) {
          }
          
          
-       }))
+       },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE )))
      
      
      
