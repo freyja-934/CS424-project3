@@ -1107,11 +1107,7 @@ server <- function(input, output,session) {
     Timestamp <- data$timestamp
     Value <- data$value
     data <- cbind(Timestamp,Value)
-    if(length(data) == 0 ){
-      stop(paste("No data avaliavle for node: "),inp)
-    }
-    else{
-      data}
+    data
   }
     
 
@@ -1293,7 +1289,7 @@ server <- function(input, output,session) {
       
       
       if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
-        stop(paste("No data avaliavle for node: "),input$node1Input)
+        ggplot()
       }
       else{
         myplot <- ggplot()
@@ -1422,7 +1418,7 @@ server <- function(input, output,session) {
       
       
       if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
-        stop(paste("No data avaliavle for node: "),input$node1Input)
+        ggplot()
       }
       else{
         myplot <- ggplot()
@@ -2080,7 +2076,7 @@ server <- function(input, output,session) {
        intensity_data <- getData(p$id, day,hour, intensity_path)
        
        if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
-         stop(paste("No data avaliavle for node: "),input$node1Input)
+         ggplot()
        }
        else{
          if(length(no2_data) > 0){
@@ -2201,7 +2197,7 @@ server <- function(input, output,session) {
          intensity_data <- getData(p$id, day,hour, intensity_path)
          
          if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
-           stop(paste("No data avaliavle for node: "),input$node1Input)
+           ggplot()
          }
          else{
            if(length(no2_data) > 0){
@@ -2284,7 +2280,10 @@ server <- function(input, output,session) {
      DT::datatable({ 
        req(input$node1Input)
        req(input$TimeFrame)
-       getPollutantData(input$node1Input, input$TimeFrame, no2_path)
+       dt <- getPollutantData(input$node1Input, input$TimeFrame, no2_path)
+       if(length(dt) >0 ){
+         dt
+       }
      },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE, width = 200 )))
    
    
