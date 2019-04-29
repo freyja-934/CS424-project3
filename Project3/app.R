@@ -1027,7 +1027,7 @@ server <- function(input, output,session) {
     #t = fromJSON("obs.html")
     currentTime = Sys.time();
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
-    print("get data  ##########################################################################################")
+    
     if(d == 7 & h ==0){
       # u1 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
       u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
@@ -1271,8 +1271,7 @@ print("^^^^^^^^^^^")
         hour = 0
         skip = 149
       }
-      
-      #print("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhelllloooo")
+
       no2_data <- getData(input$node1Input, day, hour, no2_path)
       ozone_data <- getData(input$node1Input, day, hour, ozone_path)
       co_data <- getData(input$node1Input, day, hour, co_path)
@@ -1558,7 +1557,7 @@ print("^^^^^^^^^^^")
       
     })
     
-    
+    print(select(getForecastData(43.2672, -70.8617, 0,1), 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone'))
     getOpenAqData <- function(d,h){
       req(PM25_AQ_IsSelected)
       req(PM10_AQ_IsSelected)
@@ -1716,7 +1715,6 @@ print("^^^^^^^^^^^")
      p <- input$mymap_marker_click
      
      if(is.element(p$id, location_list ) ){
-       print("In location")
        print(aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id))
        output$node_AQ_table_data <- DT::renderDataTable({ 
          DT::datatable({ 
@@ -1726,7 +1724,6 @@ print("^^^^^^^^^^^")
        })
        # PM25, PM10, SO2, NO2, O3, CO and BC
        output$node_AQ_data <- renderPlot({
-
          pm25_data_ <- getParamData(p$id, "pm25")
          pm10_data_ <- getParamData(p$id, "pm10")
          so2_data_ <- getParamData(p$id, "so2")
@@ -1734,10 +1731,10 @@ print("^^^^^^^^^^^")
          o3_data_ <- getParamData(p$id, "o3")
          co_data_ <- getParamData(p$id, "co")
          bc_data_ <- getParamData(p$id, "bc")
-         
+         myplot <- ggplot()
          if(length(pm25_data_) != 0){
            pm25_data_ <- select(pm25_data_, 'value', 'dateUTC')
-           myplot <- ggplot() +
+           myplot <- myplot +
              geom_line(data=pm25_data_ , aes(dateUTC, value, group=1, color="pm25"))
          }
          if(length(pm10_data_) != 0){
@@ -1776,8 +1773,30 @@ print("^^^^^^^^^^^")
 
        })
      }else{
-     
-     
+ 
+       output$node_DS_table_data <- DT::renderDataTable({ 
+         DT::datatable({ 
+           req(input$TimeFrame)
+           day = 0
+           hour = 0
+           
+           if(input$TimeFrame == "Current"){
+             day = 0
+             hour = 1
+           }else if(input$TimeFrame == "24 Hours"){
+             day = 1
+             hour = 0
+             
+           }else if(input$TimeFrame == "7 Days"){
+             day = 7
+             hour = 0
+           }
+           getForecastData(p$lng, p$lat, day, hour)
+
+         },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
+         
+       })
+       
      output$node_data <- renderPlot({
        req(no2_IsSelected)
        req(co_IsSelected)
@@ -1931,6 +1950,21 @@ print("^^^^^^^^^^^")
          myplot
        }
        
+       
+       # output$node_DS_data <- renderPlot({
+       #   
+       # })
+       # print(getForecastData(p$lat, p$lng, day, hour))
+       # output$node_DS_table_data <- DT::renderDataTable(
+       # 
+       #     DT::datatable({ 
+       #       getForecastData(p$lat, p$lng, day, hour)
+       #     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
+       #       
+       #    
+       #  )
+       
+       
        # if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
        #   stop(paste("No data avaliavle for node: "),input$node1Input)
        # }
@@ -1994,6 +2028,8 @@ print("^^^^^^^^^^^")
        # }
 
      })
+     
+    
      
      ############################################################### AOT TABLE #########################
      output$node_table_data <- DT::renderDataTable(
@@ -2107,18 +2143,7 @@ print("^^^^^^^^^^^")
        }))
      
      
-     output$node_DS_data <- renderPlot({
-       
-     })
      
-     output$node_DS_table_data <- DT::renderDataTable(
-       DT::datatable({
-         
-       }))
-     
-     output$node_AQ_data <- renderPlot({
-       
-     })
    }
      # output$node_AQ_table_data <- DT::renderDataTable(
      #   DT::datatable({
