@@ -1941,7 +1941,18 @@ server <- function(input, output,session) {
        output$node_AQ_data <- renderPlot({})
  
        output$node_DS_data <- renderPlot({
+         req(TEMPERATURE_DS_IsSelected)
+         req(HUMIDITY_DS_IsSelected )
+         req(WINDSPEED_IsSelected)
+         req(WINDBEARING_IsSelected)
+         req(CLOUDCOVER_IsSelected)
+         req(VISIBILITY_IsSelected)
+         req(PRESSURE_IsSelected)
+         req(OZONE_DS_IsSelected)
+         req(SUMMARY_IsSelected)
          req(input$TimeFrame)
+         
+         
          day = 0
          hour = 0
          
@@ -1958,9 +1969,42 @@ server <- function(input, output,session) {
          }
          tableDS<- getForecastData(p$lng, p$lat, day, hour)
          #view(tableDS)
-         ggplot(data=tableDS, aes(x=tableDS$time, y=tableDS$temperature, group=1)) +
-           geom_line()+
-           geom_point()
+         myplot <- ggplot()
+         
+         if(TEMPERATURE_DS_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$temperature, group=1, color="pm25"))+geom_point()
+         }
+         if(HUMIDITY_DS_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$humidity, group=1, color="pm10"))+geom_point()
+         }
+         if(WINDSPEED_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$windSpeed, group=1, color="no2"))+geom_point()
+         }
+         if(WINDBEARING_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$windBearing, group=1, color="co"))+geom_point()
+         }
+         if(CLOUDCOVER_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$cloudCover, group=1, color="bc"))+geom_point()
+         }
+         if(VISIBILITY_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$visibility, group=1, color="o3"))+geom_point()
+         }
+         if(PRESSURE_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$pressure, group=1, color="so2"))+geom_point()
+         }
+         if(OZONE_DS_IsSelected()){
+           myplot <- myplot +
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$ozone, group=1, color="pm2"))+geom_point()
+         }
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey", "black"))
+         myplot
          
        })
        
