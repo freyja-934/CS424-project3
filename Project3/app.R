@@ -1634,7 +1634,7 @@ server <- function(input, output,session) {
       req(PRESSURE_IsSelected)
       req(OZONE_DS_IsSelected)
       req(SUMMARY_IsSelected)
-      
+      req(input$units)
       res2 <- getForecastData(lon, lat, d, h)
       
       res3<- res2
@@ -1642,6 +1642,13 @@ server <- function(input, output,session) {
       
       if(!TEMPERATURE_DS_IsSelected()){
         res2 <- select(res2,-'temperature')
+      }
+      else{
+        if(input$units == 'met'){
+          res2$temperature <- (res2$temperature-32) *5/9
+        }else{
+          
+        }
       }
       if(!HUMIDITY_DS_IsSelected()){
         res2 <- select(res2,-'humidity')
@@ -1967,43 +1974,45 @@ server <- function(input, output,session) {
            day = 7
            hour = 0
          }
-         tableDS<- getForecastData(p$lng, p$lat, day, hour)
+         tableDS<- getDSData_(day, hour, p$lng, p$lat)
          #view(tableDS)
          myplot <- ggplot()
          
          if(TEMPERATURE_DS_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$temperature, group=1, color="pm25"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$temperature, group=1, color="temperature"))+geom_point()
          }
+         
+         
          if(HUMIDITY_DS_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$humidity, group=1, color="pm10"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$humidity, group=1, color="humidity"))+geom_point()
          }
          if(WINDSPEED_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$windSpeed, group=1, color="no2"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$windSpeed, group=1, color="wind speed"))+geom_point()
          }
          if(WINDBEARING_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$windBearing, group=1, color="co"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$windBearing, group=1, color="wind bearing"))+geom_point()
          }
          if(CLOUDCOVER_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$cloudCover, group=1, color="bc"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$cloudCover, group=1, color="cloud cover"))+geom_point()
          }
          if(VISIBILITY_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$visibility, group=1, color="o3"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$visibility, group=1, color="visibility"))+geom_point()
          }
          if(PRESSURE_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$pressure, group=1, color="so2"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$pressure, group=1, color="pressure"))+geom_point()
          }
          if(OZONE_DS_IsSelected()){
            myplot <- myplot +
-             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$ozone, group=1, color="pm2"))+geom_point()
+             geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$ozone, group=1, color="ozone"))+geom_point()
          }
-         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey", "black"))
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey", "black")) + labs(color='Parameters') + xlab("timestamp") + ylab("value")
          myplot
          
        })
@@ -2011,6 +2020,7 @@ server <- function(input, output,session) {
        output$node_DS_table_data <- DT::renderDataTable({ 
          DT::datatable({ 
            req(input$TimeFrame)
+           req(input$units)
            day = 0
            hour = 0
            
