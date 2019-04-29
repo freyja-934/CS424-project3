@@ -905,10 +905,11 @@ server <- function(input, output,session) {
         }
         
         
-        leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
+        
+        leaflet(dt) %>% addTiles() %>% addProviderTiles(providers$providers$CartoDB.Positron, group = "Normal Tiles") %>%addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Tiles") %>% addLayersControl(position = "bottomleft", baseGroups = c("Normal Tiles", "Dark Tiles"), options = layersControlOptions(collapsed = FALSE)) %>%
           setView( -87.57535, 41.72246, 11 ) %>%
-          addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~value,
-                     blur = 20, radius = 25)
+          addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~value*10,
+                     blur = 20, max = 0.05, radius = 15)
       }
       
     }else if(input$dataType == "DARK_SKY_HM"){
@@ -942,6 +943,11 @@ server <- function(input, output,session) {
       }else if(input$dsData == 'DS_OZONE_HM'){
           ds <- select(ds, 'lat', 'lon', 'ozone')
           ds$value <- ds$ozone
+        
+      }else {
+        
+        ds <- select(ds, 'lat', 'lon', 'windBearing')
+        ds$value <- ds$windBearing
         
       }
      
@@ -984,10 +990,19 @@ server <- function(input, output,session) {
       if(input$aqData == "AQ_BC_HM"){
         dt <- getParamData_("bc")
       }
-      
+      if(input$aotType == 'MEAN_HM'){
+        dt <- dt %>% group_by(latitude, longitude) %>% summarise(value = mean(value))
+      }
+      else if(input$aotType == 'MIN_HM'){
+        dt <- dt %>% group_by(latitude, longitude) %>% summarise(value = min(value))
+      }
+      else if(input$aotType == 'MAX_HM'){
+        
+        dt <- dt %>% group_by(latitude, longitude) %>% summarise(value = max(value)) 
+      }
       leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
         setView( -87.57535, 41.72246, 9 ) %>%
-        addHeatmap(lng = ~longitude, lat = ~latitude, intensity = ~value,
+        addHeatmap(lng = ~longitude, lat = ~latitude, intensity = ~value*50,
                    blur = 20,radius = 25)
     }
     
@@ -1380,7 +1395,7 @@ server <- function(input, output,session) {
         }
         
         
-        myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
+        myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
         myplot
       }
     })
@@ -1504,7 +1519,7 @@ server <- function(input, output,session) {
         }
         
         
-        myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
+        myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
         myplot
       }
 
@@ -1688,7 +1703,7 @@ server <- function(input, output,session) {
      Icon <- makeIcon(
        iconUrl = "https://b.kisscc0.com/20180705/qoq/kisscc0-google-maps-pin-google-map-maker-computer-icons-map-pin-2-5b3dc69162bb64.0320443815307751854044.png",
        iconWidth = 23, iconHeight = 38,
-     
+
      )
      
    
@@ -1699,6 +1714,7 @@ server <- function(input, output,session) {
        addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Maptile") %>%
        addProviderTiles(providers$Esri.WorldImagery, group = "Satellite Maptile") %>%
        addProviderTiles(providers$Hydda, group = "Hydda Maptilte") %>%    #Change this to change the different map background types
+       
        addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)%>%
        addMarkers(~longitude, ~latitude, popup = ~as.character(location), icon = Icon, layerId = ~location, label = ~as.character(location))%>%
        addLegend("bottomright", colors= c("#ff0000", "#0999E6"), labels=c("Aot", "Open_AQ"), title="Node Type")%>%
@@ -1916,7 +1932,7 @@ server <- function(input, output,session) {
              geom_line(data=bc_data_ , aes(dateUTC, value, group=1, color="bc"))
          }
          
-         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
          myplot
       }
        })
@@ -2085,7 +2101,7 @@ server <- function(input, output,session) {
          }
          
          
-         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
          myplot
        }
        
