@@ -7,6 +7,7 @@
 #    http://shiny.rstudio.com/
 #
 ################### key: 305d59068af82054adce3f22e00d7495
+########### c("#B92886", "#0088FF", "#00FFD4", "#FF7171", "#24791D", "#5F4242", "#CF65E6","#48A900", "#47768A", "#000000")
 
 
 library(shiny)
@@ -1395,7 +1396,7 @@ server <- function(input, output,session) {
         }
         
         
-        myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
+        myplot <- myplot + geom_point() + scale_colour_manual(values=c("#B92886", "#0088FF", "#00FFD4", "#FF7171", "#24791D", "#5F4242", "#CF65E6","#48A900", "#47768A", "#000000")) + labs(color='Parameters')
         myplot
       }
     })
@@ -1519,7 +1520,7 @@ server <- function(input, output,session) {
         }
         
         
-        myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
+        myplot <- myplot + geom_point() + scale_colour_manual(values=c("#B92886", "#0088FF", "#00FFD4", "#FF7171", "#24791D", "#5F4242", "#CF65E6","#48A900", "#47768A", "#000000")) + labs(color='Parameters')
         myplot
       }
 
@@ -1829,7 +1830,7 @@ server <- function(input, output,session) {
        }
        else {my_address <- toString(dt_loc$address)}
        nameN<-toString(p$id)
-       nameN2<- paste("<font size='6' color=\"#4286f4\"><b>", "NODE ID:", nameN,  "<BR>", "NODE ADDRESS:",my_address, sep = " ")
+       nameN2<- paste("<font size='12' color=\"#000000\"><b>", "NODE ID:","<font size='12' color=\"#4286f4\"><b>", nameN, "<font size='12' color=\"#000000\"><b>", "NODE ADDRESS:", "<font size='12' color=\"#4286f4\"><b>",my_address, sep = " ")
        nameN2
      })
      
@@ -1939,7 +1940,7 @@ server <- function(input, output,session) {
              geom_line(data=bc_data_ , aes(dateUTC, value, group=1, color="bc"))
          }
          
-         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("#B92886", "#0088FF", "#00FFD4", "#FF7171", "#24791D", "#5F4242", "#CF65E6")) + labs(color='Parameters')
          myplot
       }
        })
@@ -2012,7 +2013,7 @@ server <- function(input, output,session) {
            myplot <- myplot +
              geom_line(data=tableDS , aes(x=tableDS$time, y=tableDS$ozone, group=1, color="ozone"))+geom_point()
          }
-         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey", "black")) + labs(color='Parameters') + xlab("timestamp") + ylab("value")
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("#B92886", "#0088FF", "#00FFD4", "#FF7171", "#24791D", "#5F4242", "#CF65E6","#48A900")) + labs(color='Parameters') + xlab("timestamp") + ylab("value")
          myplot
          
        })
@@ -2155,7 +2156,7 @@ server <- function(input, output,session) {
          }
          
          
-         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey")) + labs(color='Parameters')
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("#B92886", "#0088FF", "#00FFD4", "#FF7171", "#24791D", "#5F4242", "#CF65E6","#48A900", "#47768A", "#000000")) + labs(color='Parameters')
          myplot
        }
        
