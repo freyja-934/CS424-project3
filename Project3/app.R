@@ -1179,7 +1179,7 @@ print("^^^^^^^^^^^")
     locations <- select(node_a, 'vsn', 'address')
     locations$coordinates <- select(node_a$location.geometry, 'coordinates')
     dt <- locations$coordinates
-  ##  print(dt)
+
     res <- dt %>%
       rowwise %>%
       mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
@@ -1596,6 +1596,43 @@ print("^^^^^^^^^^^")
       dta
     }
     
+    getOpenAqData_ <- function(d,h, loc){
+      req(PM25_AQ_IsSelected)
+      req(PM10_AQ_IsSelected)
+      req(SO2_AQ_IsSelected)
+      req(NO2_AQ_IsSelected)
+      req(O3_AQ_IsSelected)
+      req(CO_AQ_IsSelected)
+      req(BC_AQ_IsSelected)
+      
+      res2 <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc)
+      poll_list = list()
+      if(!PM25_AQ_IsSelected()){
+        res2 <- subset(res2, parameter != 'pm25')
+      }
+      if(!PM10_AQ_IsSelected()){
+        res2 <- subset(res2, parameter != 'pm10')
+      }
+      if(!SO2_AQ_IsSelected()){
+        res2 <- subset(res2, parameter != 'so2')
+      }
+      if(NO2_AQ_IsSelected()){
+        res2 <- subset(res2, parameter != 'no2')
+      }
+      if(!O3_AQ_IsSelected()){
+        res2 <- subset(res2, parameter != 'o3')
+      }
+      if(!CO_AQ_IsSelected()){
+        res2 <- subset(res2, parameter != 'co')
+      }
+      if(!BC_AQ_IsSelected()){
+        res2 <- subset(res2, parameter != 'bc')
+      }
+      
+      
+      res2
+    }
+    
   
   
     #res <- get_current_forecast(41.870, -87.647)
@@ -1715,22 +1752,71 @@ print("^^^^^^^^^^^")
      p <- input$mymap_marker_click
      
      if(is.element(p$id, location_list ) ){
-       print(aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id))
        output$node_AQ_table_data <- DT::renderDataTable({ 
          DT::datatable({ 
-           select(aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id), 'parameter', 'value', 'dateLocal')
+           select(getOpenAqData_(0,1,p$id), 'parameter', 'value', 'dateLocal')
          },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
          
        })
        # PM25, PM10, SO2, NO2, O3, CO and BC
        output$node_AQ_data <- renderPlot({
-         pm25_data_ <- getParamData(p$id, "pm25")
-         pm10_data_ <- getParamData(p$id, "pm10")
-         so2_data_ <- getParamData(p$id, "so2")
-         no2_data_ <- getParamData(p$id, "no2")
-         o3_data_ <- getParamData(p$id, "o3")
-         co_data_ <- getParamData(p$id, "co")
-         bc_data_ <- getParamData(p$id, "bc")
+         req(PM25_AQ_IsSelected)
+         req(PM10_AQ_IsSelected)
+         req(SO2_AQ_IsSelected)
+         req(NO2_AQ_IsSelected)
+         req(O3_AQ_IsSelected)
+         req(CO_AQ_IsSelected)
+         req(BC_AQ_IsSelected)
+         print("here")
+         if(PM25_AQ_IsSelected() == TRUE){
+           print("here")
+           pm25_data_ <- getParamData(p$id, "pm25")
+         }else{
+           pm25_data_ = list()
+         }
+         if(PM10_AQ_IsSelected() == TRUE){
+           pm10_data_ <- getParamData(p$id, "pm10")
+         }
+         else{
+           pm10_data_ = list()
+         }
+         if(SO2_AQ_IsSelected()){
+           so2_data_ <- getParamData(p$id, "so2")
+           print("here")
+         }
+         else{
+           so2_data_ = list()
+         }
+         if(NO2_AQ_IsSelected()){
+           no2_data_ <- getParamData(p$id, "no2")
+         }
+         else{
+           no2_data_ = list()
+         }
+         if(O3_AQ_IsSelected()){
+           o3_data_ <- getParamData(p$id, "o3")
+         }
+         else{
+           o3_data_ = list()
+         }
+         if(CO_AQ_IsSelected()){
+           co_data_ <- getParamData(p$id, "co")
+         }
+         else{
+           co_data_ = list()
+         }
+         if(BC_AQ_IsSelected()){
+           bc_data_ <- getParamData(p$id, "bc")
+         }
+         else{
+           bc_data_ = list()
+         }
+         
+         # & length(co_data_) == 0 & length(o3_data_) ==0 & length(no2_data_) == 0 & length(so2_data_) == 0 & length(pm10_data_) == 0 & length(pm25_data_) == 0
+         if(length(bc_data_) == 0 & length(co_data_) == 0 & length(o3_data_) ==0 & length(no2_data_) == 0 & length(so2_data_) == 0 & length(pm10_data_) == 0 & length(pm25_data_) == 0){
+           ggplot()
+         }
+         else{
          myplot <- ggplot()
          if(length(pm25_data_) != 0){
            pm25_data_ <- select(pm25_data_, 'value', 'dateUTC')
@@ -1770,7 +1856,7 @@ print("^^^^^^^^^^^")
          
          myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
          myplot
-
+      }
        })
      }else{
  
