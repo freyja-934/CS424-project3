@@ -174,32 +174,7 @@ ui <- dashboardPage(
       radioButtons("dataType", choices = c("AOT"= "AOT_HM", "DARK SKY"= "DARK_SKY_HM", "OPEN_AQ" = "OPENAQ_HM"), label = "CHOOSE A DATA SET",inline = TRUE),
       uiOutput("contents"),
       uiOutput("contents2")
-# 
-#       box(title = "Map Data Selection", solidHeader = TRUE, status = "primary", radioButtons("units_heatmap", "Visualize:",
-#                    c("SO2" = "AOT_SO2_HM",
-#                      "H2S" = "AOT_H2S_HM",
-#                      "O3" = "AOT_O3_HM",
-#                      "NO2" = "AOT_NO2_HM",
-#                      "CO" = "AOT_CO_HM",
-#                      "PM25" = "AOT_PM25_HM",
-#                      "PM10" = "AOT_PM10_HM",
-#                      "AOT TEMPERATURE" = "AOT_TEMPERATURE_HM",
-#                      "AOT HUMIDITY" = "AOT_HUMIDITY_HM",
-#                      "LIGHT INTENSITY" = "AOT_LIGHT_INTENSITY_HM",
-#                      "DARK SKY TEMPERATURE" = "DS_TEMPERATURE_HM",
-#                      "DARK SKY HUMIDITY" = "DS_HUMIDITY_HM",
-#                      "WIND SPEED" = "DS_WIND_SPEED_HM",
-#                      "WIND BEARING" = "DS_WIND_BEARING_HM",
-#                      "CLOUD COVER" = "DS_CLOUD_COVER_HM",
-#                      "VISIBILITY" = "DS_VISIBILITY_HM",
-#                      "PRESSURE" = "DS_PRESSURE_HM",
-#                      "OZONE" = "DS_OZONE_HM",
-#                      "SUMMARY" = "DS_SUMMARY_HM",
-#                      "MEAN" = "AQ_MEAN_HM",
-#                      "MAX" = "AQ_MAX_HM",
-#                      "AVERAGE" = "AQ_AVG_HM"),
-#                    inline = TRUE
-#       ))
+
     ),
     tabItem(
       tabName = "compare2", fluidRow(
@@ -230,34 +205,7 @@ ui <- dashboardPage(
                        tabPanel("HUMIDITY", dataTableOutput("HUMIDITY_2")),
                        tabPanel("INTENSITY", dataTableOutput("INTENSITY_2"))))
                   
-      # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
-      # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
-      # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, )),
-      # 
-      # 
-      #         # box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
-      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary", width = 2,),
-      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2,),
-      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2,),
-      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 2, ),
-      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 1, ),
-      #          box( title = "NODE 1 - ", solidHeader = TRUE, status = "primary",width = 1,)
-      #          ),
-      # 
-      # fluidRow(h4(textOutput("Node 2")),
-      #           
-      # box( title = "NODE 2 - TEMPERATURE", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("TEMPERATURE_2")),
-      # box( title = "NODE 2 - HUMIDITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("HUMIDITY_2")),
-      # box( title = "NODE 2 - INTENSITY", solidHeader = TRUE, status = "primary",width = 2, dataTableOutput("INTENSITY_2"))
-      # ),
-      # fluidRow(
-      #          box( title = "NODE 2 - NO2", solidHeader = TRUE, status = "primary" ,width = 2, dataTableOutput("NO2_2")),
-      #          box( title = "NODE 2 - OZONE", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("OZONE_2")),
-      #          box( title = "NODE 2 - CO", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("CO_2")),
-      #          box( title = "NODE 2 - H2S", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("H2S_2")),
-      #          box( title = "NODE 2 - SO2", solidHeader = TRUE, status = "primary", width = 2,dataTableOutput("SO2_2")),
-      #          box( title = "NODE 2 - PM10", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM10_2")),
-      #          box( title = "NODE 2 - PM25", solidHeader = TRUE, status = "primary", width = 1,dataTableOutput("PM25_2"))
+    
     )
     ),
     
@@ -740,7 +688,7 @@ server <- function(input, output,session) {
   
   get_forecast <- reactive({
     req(input$TimeFrame)
-    
+    autoInvalidate()
     if(input$TimeFrame == "Current"){
       day = 0
       hour = 1
@@ -904,10 +852,8 @@ server <- function(input, output,session) {
           
           dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = max(value)) 
         }
-        
-        
-        
-        leaflet(dt) %>% addTiles() %>% addProviderTiles(providers$providers$CartoDB.Positron, group = "Normal Tiles") %>%addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark Tiles") %>% addLayersControl(position = "bottomleft", baseGroups = c("Normal Tiles", "Dark Tiles"), options = layersControlOptions(collapsed = FALSE)) %>%
+      
+        leaflet(dt) %>% addTiles() %>% addProviderTiles(providers$CartoDB.DarkMatter, group = "Normal Tiles") %>%
           setView( -87.57535, 41.72246, 11 ) %>%
           addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~value*10,
                      blur = 20, max = 0.05, radius = 15)
