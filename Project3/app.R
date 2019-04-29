@@ -135,12 +135,13 @@ ui <- dashboardPage(
     # )),
     tabItem(
       tabName = "resources",
+      h1("PROJECT WEB PAGE: https://caseyleigh54.github.io/CS424-Project3-Site/ "),
       h2("Resources used in this project:"),
-      h5("All data used is from here: https://api.arrayofthings.org/api/observations?location=chicago, https://darksky.net/dev,https://github.com/ropensci/ropenaq"),
-      h5("Base Code and Code influence from Professor Andy Johnson, https://www.evl.uic.edu/aej/424/ (week 2), https://www.evl.uic.edu/aej/424/ (PROJECT 3, 2, 1)"),
+      h3("All data used is from here: https://api.arrayofthings.org/api/observations?location=chicago, https://darksky.net/dev,https://github.com/ropensci/ropenaq"),
+      h3("Base Code and Code influence from Professor Andy Johnson, https://www.evl.uic.edu/aej/424/ (week 2), https://www.evl.uic.edu/aej/424/ (PROJECT 3, 2, 1)"),
       h4("ASSIGNMENT PROJECT PAGE: https://www.evl.uic.edu/aej/424/"),
-      h6("librarys used: shiny, DT, AotClient, darksky, ropenaq, lubridate, tidyverse, dplyr, shinydashboard, leaflet, qdapTools, data.table, jsonlite, leaflet.extras, magrittr"),
-      h5("Techniques and methods adapted from:"),
+      h4("librarys used: shiny, DT, AotClient, darksky, ropenaq, lubridate, tidyverse, dplyr, shinydashboard, leaflet, qdapTools, data.table, jsonlite, leaflet.extras, magrittr"),
+      h4("Techniques and methods adapted from:"),
       h6("#####################################################3"),
       h6("  *https://medium.com/array-of-things/five-years-100-nodes-and-more-to-come-d3802653db9f"),
       h6("  *https://arrayofthings.github.io/"),
@@ -178,11 +179,12 @@ ui <- dashboardPage(
       h6("  *http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/"),
       h6("  *https://shiny.rstudio.com/tutorial/written-tutorial/lesson4/"),
       h6("  *https://stackoverflow.com/questions/33266157/how-to-add-more-whitespace-to-the-main-panel-in-shiny-dashboard"),
+      h6("  *https://davidmathlogic.com/colorblind/#%23B92886-%230088FF-%2300FFD4-%23FF7171-%2324791D-%235F4242-%23CF65E6-%2348A900-%2347768A-%23000000"),
       h6("  *and finally Professor Andy Johnson and Sai Priya Jyothula"),
       h3("PROJECT LINKS:"),
       h4("Project 1: https://nlaczn2.shinyapps.io/assignment1/"),
       h4("Project 2: http://shiny.evl.uic.edu:3838/g2/project2/"),
-      h4("Project 3: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+      h4("Project 3: https://caseyleigh54.github.io/CS424-Project3-Site/")
       
     ),
     tabItem(
@@ -1689,7 +1691,7 @@ server <- function(input, output,session) {
        
        addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)%>%
        addMarkers(~longitude, ~latitude, popup = ~as.character(location), icon = Icon, layerId = ~location, label = ~as.character(location))%>%
-       addLegend("bottomright", colors= c("#ff0000", "#0999E6"), labels=c("Aot", "Open_AQ"), title="Node Type")%>%
+       addLegend("bottomright", colors= c("#0999E6","#ff0000"), labels=c("Aot", "Open_AQ"), title="Node Type")%>%
        
        addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile", "Hydda Maptilte"), options = layersControlOptions(collapsed = FALSE))
     
@@ -1780,7 +1782,7 @@ server <- function(input, output,session) {
      )
    }
    
-   location_list <- list("ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
+   location_list <- list( "Naperville", "CHI_SP" , "Kingery Near-road #1", "Valparaiso", "ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
   
    
     observeEvent(input$mymap_marker_click, { 
