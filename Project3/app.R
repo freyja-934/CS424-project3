@@ -28,7 +28,7 @@ library(magrittr)
 pollutants_list = list("NO2", "Ozone", "CO", "H2S", "SO2", "PM10", "PM25", "Temperature", "Humidity", "Light")
 map_list = list("Default", "Map 1", "Map 2", "Map 3")
 dates_list = list("Current", "24 Hours", "7 Days")
-Sys.setenv(DARKSKY_API_KEY = '305d59068af82054adce3f22e00d7495')
+Sys.setenv(DARKSKY_API_KEY = 'f08f162526b4e1f7b6d379ee3eb574be')
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
   ################################################################################ THE COLOR AND LENGTH OF THE TITLE FOR THE SIDEBAR ################################################################################
@@ -801,13 +801,13 @@ server <- function(input, output,session) {
     #   map_df("hourly")
     dt$lat <- lat
     dt$lon <- lon
-    select(dt, 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone')
+    select(dt, 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone', 'lat', 'lon')
   }
   
   
   n_locations <- reactive({
     loc <- read.csv("county_coordinates.csv", header = TRUE)
-    loc <- select(loc, 'Longitude', 'Latitude')
+    loc <- select(loc, 'lon', 'lat')
     loc
   })
   # getCurForecast(41.83107, -87.61730)
@@ -820,17 +820,26 @@ server <- function(input, output,session) {
   #   print(res_2())
   #   write.csv(res_2(),'weather_data4.csv')
   # })
-  forecast_cur <- reactive({
-    getForecast(0,1)
+  get_forecast <- reactive({
+    req(input$TimeFrame)
+    
+    if(input$TimeFrame == "Current"){
+      day = 0
+      hour = 1
+
+    }else if(input$TimeFrame == "24 Hours"){
+      ## print(input$TimeFrame)
+      day = 1
+      hour = 0
+
+    }else if(input$TimeFrame == "7 Days"){
+      day = 7
+      hour = 0
+
+    }
+    getForecast(day,hour)
   })
   
-  forecast_24 <- reactive({
-    getForecast(1,0)
-  })
-  
-  forecast_7 <- reactive({
-    getForecast(7,0)
-  })
   
   
   weather_data <- read.csv("weather_data.csv", header = TRUE)
@@ -857,11 +866,13 @@ server <- function(input, output,session) {
     }
     return(select(u,'node_vsn', 'value', 'location.geometry'))
   }
+  
+  
   output$heatmap <- renderLeaflet({
     req(input$dataType)
     req(input$aotData)
     req(input$TimeFrame)
-    print(input$dsData)
+    req(get_forecast)
     
     day = 0
     hour = 0
@@ -921,101 +932,45 @@ server <- function(input, output,session) {
         dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = max(value)) 
       }
       
-      # Mean
+   
       leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
         setView( -87.57535, 41.72246, 11 ) %>%
         addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~value,
                    blur = 20, max = 0.05, radius = 15)
     }else{
+      ds <- get_forecast()
       if(input$dsData == 'DS_TEMPERATURE_HM'){
-        if(hour == 1){
-          ds <- select(forecast_cur(), 'lat', 'lon', 'temperature')
-        }
-        else if(day == 1){
-          ds <- select(forecast_24(), 'lat', 'lon', 'temperature')
-        }
-        else if(day == 7){
-          ds <- select(forecast_7(), 'lat', 'lon', 'temperature')
-        }
-        ds$value <- ds$temperature
-
+        print("In temperature")
+          ds <- select(ds, 'lat', 'lon', 'temperature')
+          ds$value <- ds$temperature
       }else if(input$dsData == 'DS_HUMIDITY_HM'){
-        if(hour == 1){
-          ds <- select(forecast_cur(), 'lat', 'lon', 'humidity')
-        }
-        else if(day == 1){
-          ds <- select(forecast_24(), 'lat', 'lon', 'humidity')
-        }
-        else if(day == 7){
-          ds <- select(forecast_7(), 'lat', 'lon', 'humidity')
-        }
-        ds$value <- ds$humidity
-        
-        
+          ds <- select(ds, 'lat', 'lon', 'humidity')
+          ds$value <- ds$humidity
+  
       }else if(input$dsData == 'DS_WIND_SPEED_HM'){
-        if(hour == 1){
-          ds <- select(forecast_cur(), 'lat', 'lon', 'windSpeed')
-        }
-        else if(day == 1){
-          ds <- select(forecast_24(), 'lat', 'lon', 'windSpeed')
-        }
-        else if(day == 7){
-          ds <- select(forecast_7(), 'lat', 'lon', 'windSpeed')
-        }
-        ds$value <- ds$windSpeed
-        
-        
+          ds <- select(ds, 'lat', 'lon', 'windSpeed')
+          ds$value <- ds$windSpeed
+ 
       }else if(input$dsData == 'DS_CLOUD_COVER_HM'){
-        if(hour == 1){
-          ds <- select(forecast_cur(), 'lat', 'lon', 'cloudCover')
-        }
-        else if(day == 1){
-          ds <- select(forecast_24(), 'lat', 'lon', 'cloudCover')
-        }
-        else if(day == 7){
-          ds <- select(forecast_7(), 'lat', 'lon', 'cloudCover')
-        }
-        ds$value <- ds$cloudCover
+          ds <- select(ds, 'lat', 'lon', 'cloudCover')
+          ds$value <- ds$cloudCover
         
       }else if(input$dsData == 'DS_VISIBILITY_HM'){
-        if(hour == 1){
-          ds <- select(forecast_cur(), 'lat', 'lon', 'visibility')
-        }
-        else if(day == 1){
-          ds <- select(forecast_24(), 'lat', 'lon', 'visibility')
-        }
-        else if(day == 7){
-          ds <- select(forecast_7(), 'lat', 'lon', 'visibility')
-        }
-        ds$value <- ds$visibility
+          ds <- select(ds, 'lat', 'lon', 'visibility')
+          ds$value <- ds$visibility
         
         
       }else if(input$dsData == 'DS_PRESSURE_HM'){
-        if(hour == 1){
-          ds <- select(forecast_cur(), 'lat', 'lon', 'pressure')
-        }
-        else if(day == 1){
-          ds <- select(forecast_24(), 'lat', 'lon', 'pressure')
-        }
-        else if(day == 7){
-          ds <- select(forecast_7(), 'lat', 'lon', 'pressure')
-        }
-        ds$value <- ds$pressure
+       
+          ds <- select(ds, 'lat', 'lon', 'pressure')
+          ds$value <- ds$pressure
         
       }else if(input$dsData == 'DS_OZONE_HM'){
-        if(hour == 1){
-          ds <- select(forecast_cur(), 'lat', 'lon', 'ozone')
-        }
-        else if(day == 1){
-          ds <- select(forecast_24(), 'lat', 'lon', 'ozone')
-        }
-        else if(day == 7){
-          ds <- select(forecast_7(), 'lat', 'lon', 'ozone')
-        }
-        ds$value <- ds$ozone
+          ds <- select(ds, 'lat', 'lon', 'ozone')
+          ds$value <- ds$ozone
         
       }
-      
+      View(ds)
       if(input$aotType == 'MEAN_HM'){
         dt <- ds %>% group_by(lat, lon) %>% summarise(value = mean(value))
       }
@@ -1026,10 +981,10 @@ server <- function(input, output,session) {
         
         dt <- ds %>% group_by(lat, lon) %>% summarise(value = max(value)) 
       }
-      
+      print(max(ds$value))
       leaflet(dt) %>% addProviderTiles(providers$CartoDB.Positron) %>%
         setView( -87.57535, 41.72246, 11 ) %>%
-        addHeatmap(lng = ~lon, lat = ~lat, intensity = ~value,
+        addHeatmap(lng = ~lat, lat = ~lon, intensity = ~value,
                    blur = 20, max = 0.05, radius = 15)
     }
     
@@ -1642,10 +1597,7 @@ print("^^^^^^^^^^^")
       dta
     }
     
-    observe({
-      print(getOpenAqData(0,1))
   
-    })
   
     #res <- get_current_forecast(41.870, -87.647)
    # res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
@@ -1737,8 +1689,95 @@ print("^^^^^^^^^^^")
    #   
     })
  
-   observeEvent(input$mymap_marker_click, { 
+   getParamData <- function(loc, param){
+     result = tryCatch({
+       aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc, parameter = param)
+     }, 
+     error=function(cond) {
+       
+       print(cond)
+       # Choose a return value in case of error
+       return(list())
+     },
+     warning=function(cond) {
+       
+       
+       print(cond)
+       # Choose a return value in case of warning
+       return(list())
+     }
+     )
+   }
+   
+   location_list <- list("ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
+  
+   
+    observeEvent(input$mymap_marker_click, { 
      p <- input$mymap_marker_click
+     
+     if(is.element(p$id, location_list ) ){
+       print("In location")
+       print(aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id))
+       output$node_AQ_table_data <- DT::renderDataTable({ 
+         DT::datatable({ 
+           select(aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id), 'parameter', 'value', 'dateLocal')
+         },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
+         
+       })
+       # PM25, PM10, SO2, NO2, O3, CO and BC
+       output$node_AQ_data <- renderPlot({
+
+         pm25_data_ <- getParamData(p$id, "pm25")
+         pm10_data_ <- getParamData(p$id, "pm10")
+         so2_data_ <- getParamData(p$id, "so2")
+         no2_data_ <- getParamData(p$id, "no2")
+         o3_data_ <- getParamData(p$id, "o3")
+         co_data_ <- getParamData(p$id, "co")
+         bc_data_ <- getParamData(p$id, "bc")
+         
+         if(length(pm25_data_) != 0){
+           pm25_data_ <- select(pm25_data_, 'value', 'dateUTC')
+           myplot <- ggplot() +
+             geom_line(data=pm25_data_ , aes(dateUTC, value, group=1, color="pm25"))
+         }
+         if(length(pm10_data_) != 0){
+           pm10_data_ <- select(pm10_data_, 'value', 'dateUTC')
+           myplot <- myplot +
+             geom_line(data=pm10_data_ , aes(dateUTC, value, group=1, color="pm10"))
+         }
+         if(length(so2_data_) != 0){
+           so2_data_ <- select(so2_data_, 'value', 'dateUTC')
+           myplot <- myplot +
+             geom_line(data=so2_data_ , aes(dateUTC, value, group=1, color="so2"))
+         }
+         if(length(no2_data_) != 0){
+           no2_data_ <- select(no2_data_, 'value', 'dateUTC')
+           myplot <- myplot +
+             geom_line(data=no2_data_ , aes(dateUTC, value, group=1, color="no2"))
+         }
+         if(length(o3_data_) != 0){
+           o3_data_ <- select(o3_data_, 'value', 'dateUTC')
+           myplot <- myplot +
+             geom_line(data=o3_data_ , aes(dateUTC, value, group=1, color="o3"))
+         }
+         if(length(co_data_) != 0){
+           co_data_ <- select(co_data_, 'value', 'dateUTC')
+           myplot <- myplot +
+             geom_line(data=co_data_ , aes(dateUTC, value, group=1, color="co"))
+         }
+         if(length(bc_data_) != 0){
+           bc_data_ <- select(bc_data_, 'value', 'dateUTC')
+           myplot <- myplot +
+             geom_line(data=bc_data_ , aes(dateUTC, value, group=1, color="bc"))
+         }
+         
+         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
+         myplot
+
+       })
+     }else{
+     
+     
      output$node_data <- renderPlot({
        req(no2_IsSelected)
        req(co_IsSelected)
@@ -1787,25 +1826,25 @@ print("^^^^^^^^^^^")
          skip = 149
        }
        
-       location_list <- list("ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
-       
-       if(is.element(p$id, location_list) ){
-         output$node_data <- renderTable({
-           aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id)
-         })
-
-         output$node_data <- renderPlot({
-
-           pm25_data <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc, parameter="pm25")
-
-           myplot <- ggplot() +
-             geom_line(data=pm25_data , aes(timestamp, value, group=1, color="NO2"))
-
-         })
-
-         print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-       }
-       
+       # location_list <- list("ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
+       # 
+       # if(is.element(p$id, location_list) ){
+       #   output$node_data <- renderTable({
+       #     aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id)
+       #   })
+       # 
+       #   output$node_data <- renderPlot({
+       # 
+       #     pm25_data <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc, parameter="pm25")
+       # 
+       #     myplot <- ggplot() +
+       #       geom_line(data=pm25_data , aes(timestamp, value, group=1, color="NO2"))
+       # 
+       #   })
+       # 
+       #   print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+       # }
+       # 
        
        
        no2_data <- getData(p$id, day,hour, no2_path)
@@ -2067,6 +2106,7 @@ print("^^^^^^^^^^^")
          
        }))
      
+     
      output$node_DS_data <- renderPlot({
        
      })
@@ -2079,11 +2119,11 @@ print("^^^^^^^^^^^")
      output$node_AQ_data <- renderPlot({
        
      })
-     
-     output$node_AQ_table_data <- DT::renderDataTable(
-       DT::datatable({
-         
-       }))
+   }
+     # output$node_AQ_table_data <- DT::renderDataTable(
+     #   DT::datatable({
+     #     
+     #   }))
 
    })
   
