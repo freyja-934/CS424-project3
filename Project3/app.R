@@ -198,10 +198,10 @@ ui <- dashboardPage(
     ),
     tabItem(
       tabName = "compare2", fluidRow(
-          box(title = "Node 1", width= 12, plotOutput("node1_cur"), height = 450),
-          box(title = "NODE 2" ,width= 12, plotOutput("node2_cur"), height = 450),
+          box(title = textOutput("titleNode1"), width= 12, plotOutput("node1_cur"), height = 450),
+          box(title = textOutput("titleNode2") ,width= 12, plotOutput("node2_cur"), height = 450),
           
-          box(title = "Node 1", width= 6, tabsetPanel( type = "tabs",
+          box(title = textOutput("titleNode1T"), width= 6, tabsetPanel( type = "tabs",
                        tabPanel("NO2",dataTableOutput("NO2_1")),
                        tabPanel("CO", dataTableOutput("CO_1")),
                        tabPanel("H2S", dataTableOutput("H2S_1")),
@@ -213,7 +213,7 @@ ui <- dashboardPage(
                        tabPanel("HUMIDITY", dataTableOutput("HUMIDITY_1")),
                        tabPanel("INTENSITY", dataTableOutput("INTENSITY_1")))),
           
-          box(title = "Node 2", width= 6, tabsetPanel( type = "tabs",
+          box(title = textOutput("titleNode2T"), width= 6, tabsetPanel( type = "tabs",
                        tabPanel("NO2",dataTableOutput("NO2_2")),
                        tabPanel("CO", dataTableOutput("CO_2")),
                        tabPanel("H2S", dataTableOutput("H2S_2")),
@@ -1605,7 +1605,6 @@ server <- function(input, output,session) {
       res2 <- getForecastData(lon, lat, d, h)
       
       res3<- res2
-      #view(res3)
       
       if(!TEMPERATURE_DS_IsSelected()){
         res2 <- select(res2,-'temperature')
@@ -1641,7 +1640,6 @@ server <- function(input, output,session) {
       if(!SUMMARY_IsSelected()){
         res2 <- select(res2,-'summary')
       }
-      #view(res2)
       
       
       res2
@@ -1785,8 +1783,40 @@ server <- function(input, output,session) {
    location_list <- list( "Naperville", "CHI_SP" , "Kingery Near-road #1", "Valparaiso", "ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
   
    
+   
+   
+   output$titleNode1 <- renderText({
+     p <-req(input$node1Input)
+     nameN<-toString(p)
+     name2 <- paste("NODE CHOICE 1, NODE ", nameN,sep = " ")
+     name2
+   })
+   output$titleNode1T <- renderText({
+     p <-req(input$node1Input)
+     nameN<-toString(p)
+     name2 <- paste("NODE CHOICE 1, NODE ", nameN,sep = " ")
+     name2
+   })
+   output$titleNode2 <- renderText({
+     p <-req(input$node2Input)
+     nameN<-toString(p)
+     name2 <- paste("NODE CHOICE 2, NODE ", nameN,sep = " ")
+     name2
+   })
+   output$titleNode2T <- renderText({
+     p <-req(input$node2Input)
+     nameN<-toString(p)
+     name2 <- paste("NODE CHOICE 2, NODE ", nameN,sep = " ")
+     name2
+   })
+   
+   
+   
+   
     observeEvent(input$mymap_marker_click, { 
      p <- input$mymap_marker_click
+     
+    
      
      output$title2 <- renderText({
        dt_loc <- nodeLocations()
