@@ -349,9 +349,9 @@ server <- function(input, output,session) {
   })
   
   output$contents2 <- renderUI({
-      radioButtons("aotType", choices = c("MEAN" = "MEAN_HM",
+      radioButtons("aotType", choices = c("MIN" = "MIN_HM",
                                           "MAX" = "MAX_HM",
-                                          "AVERAGE" = "AVG_HM"), 
+                                          "AVERAGE" = "MEAN_HM"), 
                    label = "CHOOSE A DATA TYPE", inline = TRUE)
    
   })
@@ -862,8 +862,10 @@ server <- function(input, output,session) {
           select(-coordinates)
         data <- cbind(datar, res)
         locations <- select(data, 'value', 'node_vsn', 'Lat', 'Lon')
+        
         if(input$aotType == 'MEAN_HM'){
           dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = mean(value))
+          
         }
         else if(input$aotType == 'MIN_HM'){
           dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = min(value))
@@ -1293,15 +1295,16 @@ server <- function(input, output,session) {
         stop(paste("No data avaliavle for node: "),input$node1Input)
       }
       else{
+        myplot <- ggplot()
         if(length(no2_data) > 0){
           no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
           no2_data<- no2_data[c(rep(FALSE,skip),TRUE), ]
-          myplot <- ggplot() + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+          myplot <- myplot + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
         }
         if(length(ozone_data) > 0){
           ozone_data $timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
           ozone_data<- ozone_data[c(rep(FALSE,skip),TRUE), ]
-          myplot <- ggplot() + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="NO2")) 
+          myplot <- myplot + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="Ozone")) 
         }
         if(length(co_data) > 0 ){
           co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
@@ -1421,15 +1424,16 @@ server <- function(input, output,session) {
         stop(paste("No data avaliavle for node: "),input$node1Input)
       }
       else{
+        myplot <- ggplot()
         if(length(no2_data) > 0){
           no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
           no2_data<- no2_data[c(rep(FALSE,skip),TRUE), ]
-          myplot <- ggplot() + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
+          myplot <- myplot + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
         }
         if(length(ozone_data) > 0){
           ozone_data $timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
           ozone_data<- ozone_data[c(rep(FALSE,skip),TRUE), ]
-          myplot <- ggplot() + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="NO2")) 
+          myplot <- myplot + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="Ozone")) 
         }
         if(length(co_data) > 0 ){
           co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
