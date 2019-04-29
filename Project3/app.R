@@ -810,6 +810,7 @@ server <- function(input, output,session) {
     req(input$aotData)
     req(input$TimeFrame)
     req(get_forecast)
+    autoInvalidate()
     
     day = 0
     hour = 0
@@ -1259,7 +1260,7 @@ server <- function(input, output,session) {
       req(intensity_IsSelected)
       req(input$units)
       req(input$TimeFrame)
-      
+      autoInvalidate()
       day = 0
       hour = 0
       skip = 0
@@ -1387,7 +1388,7 @@ server <- function(input, output,session) {
       req(intensity_IsSelected)
       req(input$units)
       req(input$TimeFrame)
-     
+      autoInvalidate()
       
       day = 0
       hour = 0
@@ -1560,39 +1561,57 @@ server <- function(input, output,session) {
         to_date <- Sys.Date() - days(7)
         
       }
-      
-      res2 <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", date_from = toString(to_date), date_to = toString(cur_date), location=loc)
-      
-      if(input$TimeFrame == "Current"){
-        res2 <- tail(res2, 4)
+      result = tryCatch({
+        res2 <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", date_from = toString(to_date), date_to = toString(cur_date), location=loc)
         
+        if(input$TimeFrame == "Current"){
+          res2 <- tail(res2, 4)
+          
+        }
+        
+        poll_list = list()
+        if(!PM25_AQ_IsSelected()){
+          res2 <- subset(res2, parameter != 'pm25')
+        }
+        if(!PM10_AQ_IsSelected()){
+          res2 <- subset(res2, parameter != 'pm10')
+        }
+        if(!SO2_AQ_IsSelected()){
+          res2 <- subset(res2, parameter != 'so2')
+        }
+        if(NO2_AQ_IsSelected()){
+          res2 <- subset(res2, parameter != 'no2')
+        }
+        if(!O3_AQ_IsSelected()){
+          res2 <- subset(res2, parameter != 'o3')
+        }
+        if(!CO_AQ_IsSelected()){
+          res2 <- subset(res2, parameter != 'co')
+        }
+        if(!BC_AQ_IsSelected()){
+          res2 <- subset(res2, parameter != 'bc')
+        }
+        
+        
+        res2
+      }, 
+      error=function(cond) {
+        
+        print(cond)
+        # Choose a return value in case of error
+        return(list())
+      },
+      warning=function(cond) {
+        
+        
+        print(cond)
+        # Choose a return value in case of warning
+        return(list())
       }
-  
-      poll_list = list()
-      if(!PM25_AQ_IsSelected()){
-        res2 <- subset(res2, parameter != 'pm25')
-      }
-      if(!PM10_AQ_IsSelected()){
-        res2 <- subset(res2, parameter != 'pm10')
-      }
-      if(!SO2_AQ_IsSelected()){
-        res2 <- subset(res2, parameter != 'so2')
-      }
-      if(NO2_AQ_IsSelected()){
-        res2 <- subset(res2, parameter != 'no2')
-      }
-      if(!O3_AQ_IsSelected()){
-        res2 <- subset(res2, parameter != 'o3')
-      }
-      if(!CO_AQ_IsSelected()){
-        res2 <- subset(res2, parameter != 'co')
-      }
-      if(!BC_AQ_IsSelected()){
-        res2 <- subset(res2, parameter != 'bc')
-      }
+      )
       
       
-      res2
+      
     }
     
     getDSData_ <- function(d,h, lon, lat){
@@ -1661,6 +1680,7 @@ server <- function(input, output,session) {
    output$mymap <- renderLeaflet({
      #req(input$Maps)
      req(pollutantPaths)
+     autoInvalidate()
   
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
  
@@ -1683,7 +1703,15 @@ server <- function(input, output,session) {
      )
      
    
-
+     output$title2 <- renderText({})
+     output$node_data <- renderPlot({})
+     output$node_DS_data <- renderPlot({})
+     output$node_DS_table_data <- DT::renderDataTable(DT::datatable({ }))
+     output$node_table_data <- DT::renderDataTable(DT::datatable({ }))
+     
+     output$node_AQ_table_data <- DT::renderDataTable({ })
+     output$node_AQ_data <- renderPlot({})
+     
     leaflet(both) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
@@ -1698,49 +1726,8 @@ server <- function(input, output,session) {
        addLayersControl(position = "bottomleft", baseGroups = c("Default Maptile", "Dark Maptile", "Satellite Maptile", "Hydda Maptilte"), options = layersControlOptions(collapsed = FALSE))
     
  
-      
-     
-       
-     # if(input$Maps == "Default"){
-     #   leaflet(ds) %>%
-     #     addTiles() %>%  # Add default OpenStreetMap map tiles
-     #     #addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
-     #     addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-     # 
-     # }
-     #  else if(input$Maps == "Map 1"){
-     #   leaflet(ds) %>%
-     #     addTiles() %>%  # Add default OpenStreetMap map tiles
-     #     addProviderTiles(providers$Hydda) %>%    #Change this to change the different map background types
-     #     addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-     #   
-     # }
-     # 
-     # else if(input$Maps == "Map 2"){
-     #   leaflet(ds) %>%
-     #     addTiles() %>%  # Add default OpenStreetMap map tiles
-     #     addProviderTiles(providers$Stamen.TopOSMRelief) %>%    #Change this to change the different map background types   
-     #     addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-     #   
-     # }
-     
-   #   else if(input$Maps == "Map 2"){
-   #     leaflet(ds) %>%
-   #       addTiles() %>%  # Add default OpenStreetMap map tiles
-   #       addProviderTiles(providers$Stamen.TonerHybrid) %>%    #Change this to change the different map background types
-   #       addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-   # 
-   #   }
-   #   
-   #   
-   #   else if(input$Maps == "Map 3"){
-   #     leaflet(ds) %>%
-   #       addTiles() %>%  # Add default OpenStreetMap map tiles
-   #       addProviderTiles(providers$Stamen) %>%    #Change this to change the different map background types
-   #       addMarkers(~Lat, ~Lon, popup = ~as.character(address), label = ~as.character(vsn), layerId = ~vsn)
-   #     
-   #   }
-   #   
+      ## Clears data on autoinvalidate 
+    
     })
  
    getParamData <- function(loc, param){
@@ -1816,8 +1803,9 @@ server <- function(input, output,session) {
    
    
    
-   
+   ##### Marker clicked ####
     observeEvent(input$mymap_marker_click, { 
+      autoInvalidate()
      p <- input$mymap_marker_click
      
     
@@ -1842,7 +1830,11 @@ server <- function(input, output,session) {
        
        output$node_AQ_table_data <- DT::renderDataTable({ 
          DT::datatable({ 
-           select(getOpenAqData_(0,1,p$id), 'parameter', 'value', 'dateLocal')
+           dt <- getOpenAqData_(0,1,p$id)
+           if(length(dt) > 0){
+             select(getOpenAqData_(0,1,p$id), 'parameter', 'value', 'dateLocal')
+           }
+           
          },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
          
        })
