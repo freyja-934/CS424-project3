@@ -982,7 +982,7 @@ server <- function(input, output,session) {
         dt <- ds %>% group_by(lat, lon) %>% summarise(value = max(value)) 
       }
       print(max(ds$value))
-      leaflet(dt) %>% addProviderTiles(providers$CartoDB.Positron) %>%
+      leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
         setView( -87.57535, 41.72246, 11 ) %>%
         addHeatmap(lng = ~lat, lat = ~lon, intensity = ~value,
                    blur = 20, max = 0.05, radius = 15)
