@@ -368,7 +368,7 @@ server <- function(input, output,session) {
                    label = "CHOOSE A PARAMETER", inline = TRUE)
     }
     else{
-      radioButtons("aotData", choices = c("SO2" = "AQ_SO2_HM",
+      radioButtons("aqData", choices = c("SO2" = "AQ_SO2_HM",
                                           "O3" = "AQ_O3_HM",
                                           "NO2" = "AQ_NO2_HM",
                                           "CO" = "AQ_CO_HM",
@@ -386,22 +386,7 @@ server <- function(input, output,session) {
                    label = "CHOOSE A DATA TYPE", inline = TRUE)
    
   })
-  
-  observe({
-    req(input$dataType)
-    req(input$aotData)
-    req(input$dsData)
-    req(input$aotType)
-    
-    if(input$dataType == "AOT_HM"){
-      print("aot")
-      print(input$aotType)
-      print(input$aotData)
-    }
-    if(input$dataType == "DARK_SKY_HM"){
-      print(input$dsData)
-    }
-  })
+
 
   
   getNodeData2 <- function(vsn, d,h, path){
@@ -724,68 +709,6 @@ server <- function(input, output,session) {
   # Coordinates of every county in illinois
   county_coordinates <- read.table(file= "county_coordinates.csv",sep = ",", header = TRUE)
   
-  # getForecast <- function(lat, lon){
-  #   currentTime = Sys.time();
-  #   gmtTime = as.POSIXct(currentTime)
-  #   gmtTime <- toString(as.POSIXct(gmtTime, "%Y-%m-%dT%H:%M"))
-  #   arr <- unlist(strsplit(gmtTime, ' '))
-  #   curTime <- paste(arr[1], 'T', arr[2], sep="")
-  #   forecast <- get_forecast_for(lat, lon, curTime)
-  #   return(forecast)
-  # }
-  # 
-  # #current weather data (24 hours)
-  # # Pollutants: temperature, humidity, wind speed, wind bearing, cloud cover, visibility, pressure, ozone, summary
-  # getCurForecast <- function(lon, lat){
-  #   forecast <- getForecast(lat, lon)
-  #   hourly_forecast <- forecast$hourly
-  #   weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
-  #   return(weather_data)
-  # }
-  # 
-  # getDailyForecast <- function(lon, lat){
-  #   forecast <- getForecast(lat, lon)
-  #   hourly_forecast <- forecast$current
-  #   weather_data <- select(hourly_forecast, 'time', 'temperature', 'humidity', 'windSpeed', 'windBearing', 'cloudCover', 'visibility', 'pressure', 'ozone', 'summary' )
-  #   weather_data$lat <- lat
-  #   weather_data$lon <- lon
-  #   return(weather_data)
-  # }
-  # 
-  # curForecast <- getDailyForecast(41.83107, -87.61730)
-  # curForecast$Lon <- 41.83107
-  # curForecast$Lat <- -87.61730
-  # 
-  # curForecast2 <- getDailyForecast(41.75124, -87.71299)
-  # curForecast2$Lon <- 41.75124
-  # curForecast2$Lat <- -87.71299
-  # 
-  # curForecast3 <- getDailyForecast(41.72246, -87.57535)
-  # curForecast3$Lon <- 41.72246
-  # curForecast3$Lat <- -87.57535
-  # 
-  # 
-  # res3 <- bind_rows(curForecast, curForecast2, curForecast3)
-  # 
-  # 
-  # 
-  # print(res3)
-  # 
-  # n_locations <- reactive({
-  #   select(allNodeLocations(), Lat, Lon)
-  # 
-  # })
-  # 
-  # res_2 <- reactive({
-  #   loc <- n_locations()
-  #   do.call(rbind, apply(loc, 1, function(z) getDailyForecast(z[1], z[2])))
-  # })
-  # # 
-  # observe({
-  #   print(res_2())
-  #   write.csv(res_2(),'weather_data.csv')
-  # })
-  
   getForecastData <- function(lat, lon, d, h){
     
     if(d == 7){
@@ -799,9 +722,7 @@ server <- function(input, output,session) {
     }else if(d == 0){
       dt <- get_current_forecast(lon, lat)$current
     }
-    # res7 <- seq(Sys.Date()-7, Sys.Date(), "1 day") %>% 
-    #   map(~get_forecast_for(43.2672, -70.8617, .x)) %>% 
-    #   map_df("hourly")
+   
     dt$lat <- lat
     dt$lon <- lon
     select(dt, 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone', 'lat', 'lon')
@@ -818,11 +739,7 @@ server <- function(input, output,session) {
     loc <- n_locations()
     do.call(rbind, apply(loc, 1, function(z) getForecastData(z[1], z[2], d, h)))
   }
-  # #
-  # observe({
-  #   print(res_2())
-  #   write.csv(res_2(),'weather_data4.csv')
-  # })
+  
   get_forecast <- reactive({
     req(input$TimeFrame)
     
@@ -831,7 +748,7 @@ server <- function(input, output,session) {
       hour = 1
 
     }else if(input$TimeFrame == "24 Hours"){
-      ## print(input$TimeFrame)
+
       day = 1
       hour = 0
 
@@ -851,16 +768,32 @@ server <- function(input, output,session) {
     
     sz<-"200"
     if(d == 7){
-      sz <- "100000"
+      sz <- "20000"
     }
     if(d == 1){
-      sz <- "20000"
+      sz <- "5000"
     }
     if(h == 1){
       sz <- "500"
     }
+    u = tryCatch({
+      ls.observations(filters=list(project='chicago',sensor=path, size=sz))
+    }, 
+    error=function(cond) {
+      
+      print(cond)
+      # Choose a return value in case of error
+      return(list())
+    },
+    warning=function(cond) {
+      
+      
+      print(cond)
+      # Choose a return value in case of warning
+      return(list())
+    }
+    )
     
-    u <- ls.observations(filters=list(project='chicago',sensor=path, size=sz))
     
     path_list = pollutantPaths()
     
@@ -870,6 +803,41 @@ server <- function(input, output,session) {
     return(select(u,'node_vsn', 'value', 'location.geometry'))
   }
   
+  getParamData_ <- function(param){
+    req(input$TimeFrame)
+    if(input$TimeFrame == "Current"){
+      cur_date <- Sys.Date()
+      to_date <- Sys.Date() 
+      
+    }else if(input$TimeFrame == "24 Hours"){
+      cur_date <- Sys.Date()
+      to_date <- Sys.Date() - days(1)
+      
+    }else if(input$TimeFrame == "7 Days"){
+      cur_date <- Sys.Date()
+      to_date <- Sys.Date() - days(7)
+      
+    }
+    result = tryCatch({
+      cur_date <- Sys.Date()
+      select(aq_measurements(city = "Chicago-Naperville-Joliet", date_from = toString(to_date), date_to = toString(cur_date), parameter = param), 'value', 'latitude', 'longitude')
+    }, 
+    error=function(cond) {
+      
+      print(cond)
+      # Choose a return value in case of error
+      return(list())
+    },
+    warning=function(cond) {
+      
+      
+      print(cond)
+      # Choose a return value in case of warning
+      return(list())
+    }
+    )}
+  
+
   
   output$heatmap <- renderLeaflet({
     req(input$dataType)
@@ -884,7 +852,7 @@ server <- function(input, output,session) {
       day = 0
       hour = 1
     }else if(input$TimeFrame == "24 Hours"){
-      ##   print(input$TimeFrame)
+
       day = 1
       hour = 0
     }else if(input$TimeFrame == "7 Days"){
@@ -915,35 +883,41 @@ server <- function(input, output,session) {
         path = intensity_path
       }
       datar <- getHeatMapData(day,hour, path)
-      loc <- select(datar$location.geometry, 'coordinates')
-      dt <- loc
-      res <- dt %>%
-        rowwise %>%
-        mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
-        ungroup %>%
-        select(-coordinates)
-      data <- cbind(datar, res)
-      locations <- select(data, 'value', 'node_vsn', 'Lat', 'Lon')
-      if(input$aotType == 'MEAN_HM'){
-        dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = mean(value))
-      }
-      else if(input$aotType == 'MIN_HM'){
-        dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = min(value))
-      }
-      else if(input$aotType == 'MAX_HM'){
+      if(length(datar) == 0){
+        leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
+          setView( -87.57535, 41.72246, 11 ) 
+      }else{
+        loc <- select(datar$location.geometry, 'coordinates')
+        dt <- loc
+        res <- dt %>%
+          rowwise %>%
+          mutate(Lat = as.numeric(coordinates[1]), Lon = as.numeric(coordinates[2])) %>%
+          ungroup %>%
+          select(-coordinates)
+        data <- cbind(datar, res)
+        locations <- select(data, 'value', 'node_vsn', 'Lat', 'Lon')
+        if(input$aotType == 'MEAN_HM'){
+          dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = mean(value))
+        }
+        else if(input$aotType == 'MIN_HM'){
+          dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = min(value))
+        }
+        else if(input$aotType == 'MAX_HM'){
+          
+          dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = max(value)) 
+        }
         
-        dt <- locations %>% group_by(node_vsn, Lat, Lon) %>% summarise(value = max(value)) 
+        
+        leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
+          setView( -87.57535, 41.72246, 11 ) %>%
+          addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~value,
+                     blur = 20, radius = 25)
       }
       
-   
-      leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
-        setView( -87.57535, 41.72246, 11 ) %>%
-        addHeatmap(lng = ~Lat, lat = ~Lon, intensity = ~value,
-                   blur = 20, max = 0.05, radius = 15)
-    }else{
+    }else if(input$dataType == "DARK_SKY_HM"){
       ds <- get_forecast()
       if(input$dsData == 'DS_TEMPERATURE_HM'){
-        print("In temperature")
+
           ds <- select(ds, 'lat', 'lon', 'temperature')
           ds$value <- ds$temperature
       }else if(input$dsData == 'DS_HUMIDITY_HM'){
@@ -973,7 +947,7 @@ server <- function(input, output,session) {
           ds$value <- ds$ozone
         
       }
-      View(ds)
+     
       if(input$aotType == 'MEAN_HM'){
         dt <- ds %>% group_by(lat, lon) %>% summarise(value = mean(value))
       }
@@ -984,11 +958,40 @@ server <- function(input, output,session) {
         
         dt <- ds %>% group_by(lat, lon) %>% summarise(value = max(value)) 
       }
-      print(max(ds$value))
+
       leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
         setView( -87.57535, 41.72246, 11 ) %>%
         addHeatmap(lng = ~lat, lat = ~lon, intensity = ~value,
                    blur = 20, max = 0.05, radius = 15)
+    }
+    else{
+      if(input$aqData == "AQ_SO2_HM"){
+        dt <- getParamData_("so2")
+      }
+      if(input$aqData == "AQ_O3_HM"){
+        dt <- getParamData_("o3")
+      }
+      if(input$aqData == "AQ_NO2_HM"){
+        dt <- getParamData_("no2")
+      }
+      if(input$aqData == "AQ_CO_HM"){
+        dt <- getParamData_("co")
+      }
+      if(input$aqData == "AQ_PM25_HM"){
+
+        dt <- getParamData_("pm25")
+      }
+      if(input$aqData == "AQ_PM10_HM"){
+        dt <- getParamData_("pm10")
+      }
+      if(input$aqData == "AQ_BC_HM"){
+        dt <- getParamData_("bc")
+      }
+      
+      leaflet(dt) %>% addProviderTiles(providers$CartoDB.DarkMatter) %>%
+        setView( -87.57535, 41.72246, 9 ) %>%
+        addHeatmap(lng = ~longitude, lat = ~latitude, intensity = ~value,
+                   blur = 20,radius = 25)
     }
     
     
@@ -1033,19 +1036,43 @@ server <- function(input, output,session) {
     
     if(d == 7 & h ==0){
       # u1 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
-      u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
-      
-      # u3 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(2), format="le:%Y-%m-%dT%H:%M:%S"))))
-      # u4 <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(3), format="le:%Y-%m-%dT%H:%M:%S"))))
-      # u22 <- select(u2, 'node_vsn', 'timestamp', 'value', 'sensor_path')
-      # u33 <- select(u3, 'node_vsn', 'timestamp', 'value', 'sensor_path')
-      # u44 <- select(u4, 'node_vsn', 'timestamp', 'value', 'sensor_path')
-      # u <- rbind(u22, u33, u44)
-      # View(u)
+      u = tryCatch({
+        ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz))
+      }, 
+      error=function(cond) {
+        
+        print(cond)
+        # Choose a return value in case of error
+        return(list())
+      },
+      warning=function(cond) {
+        
+        
+        print(cond)
+        # Choose a return value in case of warning
+        return(list())
+      }
+      )
+     
     }
     else if(d==1){
-      u <- ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
-
+      u = tryCatch({
+      ls.observations(filters=list(project='chicago', sensor=path, node=vsn,size=sz, timestamp=toString(strftime(gmtTime - days(1), format="ge:%Y-%m-%dT%H:%M:%S"))))
+      }, 
+      error=function(cond) {
+        
+        print(cond)
+        # Choose a return value in case of error
+        return(list())
+      },
+      warning=function(cond) {
+        
+        
+        print(cond)
+        # Choose a return value in case of warning
+        return(list())
+      }
+      )
       }
     else{
       u = tryCatch({
@@ -1067,7 +1094,7 @@ server <- function(input, output,session) {
       )
       
       }
-    # print(u)
+
     
     if(length(u) == 0){
       return (u)
@@ -1141,9 +1168,8 @@ server <- function(input, output,session) {
   
 
 
-print("^^^^^^^^^^^")
+
   theAData <- ls.observations(filters=list(project='chicago', sensor="chemsense.co.concentration",  size=1000))
-  ## print(theAData)
 
   
   observe({
@@ -1156,10 +1182,8 @@ print("^^^^^^^^^^^")
     gmtTime = as.POSIXlt(currentTime, tz="UTC")
     int <- interval(gmtTime - hours(h) - days(d), gmtTime)
     path_list = pollutantPaths()
-    print("##################")
-  ## print(theAData)
     c = select(subset(theAData, is.element(sensor_path, path_list)), 'node_vsn', 'sensor_path', 'timestamp', 'value')
-   ## print(c)
+
     return (c)
   }
 
@@ -1174,7 +1198,6 @@ print("^^^^^^^^^^^")
   # Returns all nodes and locations of currently selected items
   getNodeLocations <- function(){
     c <- getNodes("metsense.tsys01.temperature", 0, 1)
-   ## print(c)
     nodes <- unique(c$node_vsn)
     node_addresses <- subset(ls.nodes(filters=list(project='chicago')), (vsn %in% nodes))
 
@@ -1265,7 +1288,6 @@ print("^^^^^^^^^^^")
         hour = 1
         #skip = 4
       }else if(input$TimeFrame == "24 Hours"){
-        ## print(input$TimeFrame)
         day = 1
         hour = 0
         skip = 49
@@ -1332,8 +1354,7 @@ print("^^^^^^^^^^^")
         #Work here 
         if(input$units == "met"){
           if(length(temperature_data) > 0){
-            print("The Data is in Metric")
-            print(temperature_data)
+
             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
             temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
@@ -1343,7 +1364,7 @@ print("^^^^^^^^^^^")
           if(length(temperature_data) > 0){
            ##Working Convertion
             temperature_data$TempM <- temperature_data[,'value']*9/5+32
-             print(temperature_data)
+
             temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
             temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
             myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
@@ -1384,22 +1405,7 @@ print("^^^^^^^^^^^")
       req(intensity_IsSelected)
       req(input$units)
       req(input$TimeFrame)
-      # 
-      # day = 0
-      # hour = 0
-      # 
-      # if(input$TimeFrame == "Current"){
-      #   day = 0
-      #   hour = 1
-      # }else if(input$TimeFrame == "24 Hours"){
-      # ##  print(input$TimeFrame)
-      #   day = 1
-      #   hour = 0
-      # }else if(input$TimeFrame == "7 Days"){
-      #   day = 7
-      #   hour = 0
-      # }
-      
+     
       
       day = 0
       hour = 0
@@ -1410,7 +1416,7 @@ print("^^^^^^^^^^^")
         hour = 1
         #skip = 4
       }else if(input$TimeFrame == "24 Hours"){
-        ## print(input$TimeFrame)
+
         day = 1
         hour = 0
         skip = 49
@@ -1504,63 +1510,11 @@ print("^^^^^^^^^^^")
         myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
         myplot
       }
-      # 
-      # if(length(no2_data) == 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0){
-      #   stop(paste("No data avaliavle for node: "),input$node1Input)
-      # }
-      # else{
-      #   no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #   myplot <- ggplot() +
-      #     geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
-      #   if(length(co_data) > 0 ){
-      #     co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #     myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
-      #   }
-      #   if(length(h2s_data) > 0){
-      #     h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #     myplot <- myplot + geom_line(data=h2s_data, aes(timestamp, value, group=1, color="H2S"))
-      #   }
-      #   if(length(so2_data) > 0){
-      #     so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #     myplot <- myplot + geom_line(data=so2_data, aes(timestamp, value, group=1, color="SO2"))
-      #   }
-      #   if(length(pm10_data) > 0){
-      #     pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #     myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
-      #   }
-      #   
-      #   
-      #   if(input$units == "met"){
-      #      if(length(temperature_data) > 0){
-      #        temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #        myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
-      #     }
-      #   }
-      #   else if(input$units == "imp"){
-      #     if(length(temperature_data) > 0){
-      #       temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #       temperature_data$TempM <- temperature_data[,'value']*9/5+32
-      #       myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
-      #     }
-      #   }
-      #   
-      #   if(length(humidity_data) > 0){
-      #     humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #     myplot <- myplot + geom_line(data=humidity_data, aes(timestamp, value, group=1, color="Humidity"))
-      #   }
-      #   if(length(intensity_data) > 0){
-      #     intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-      #     myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
-      #   }
-      #   
-      #   
-      #   myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
-      #   myplot
-      # }
+
       
     })
     
-    print(select(getForecastData(43.2672, -70.8617, 0,1), 'time', 'temperature', 'humidity', 'pressure', 'windSpeed', 'visibility', 'ozone'))
+
     getOpenAqData <- function(d,h){
       req(PM25_AQ_IsSelected)
       req(PM10_AQ_IsSelected)
@@ -1607,8 +1561,30 @@ print("^^^^^^^^^^^")
       req(O3_AQ_IsSelected)
       req(CO_AQ_IsSelected)
       req(BC_AQ_IsSelected)
+      req(input$TimeFrame)
       
-      res2 <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc)
+      if(input$TimeFrame == "Current"){
+        cur_date <- Sys.Date()
+        to_date <- Sys.Date() -days(1)
+        
+      }else if(input$TimeFrame == "24 Hours"){
+
+        cur_date <- Sys.Date()
+        to_date <- Sys.Date() - days(1)
+        
+      }else if(input$TimeFrame == "7 Days"){
+        cur_date <- Sys.Date()
+        to_date <- Sys.Date() - days(7)
+        
+      }
+      
+      res2 <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", date_from = toString(to_date), date_to = toString(cur_date), location=loc)
+      
+      if(input$TimeFrame == "Current"){
+        res2 <- tail(res2, 4)
+        
+      }
+  
       poll_list = list()
       if(!PM25_AQ_IsSelected()){
         res2 <- subset(res2, parameter != 'pm25')
@@ -1649,9 +1625,9 @@ print("^^^^^^^^^^^")
      req(pollutantPaths)
   
      ds <- nodeLocations()  #displays only the current nodes with information (last 1 hour)
-     #print(ds)
+ 
      aq <- getOpenAqData() 
-     #print(aq)
+   
      both <- merge(ds, aq) 
      
      
@@ -1669,7 +1645,7 @@ print("^^^^^^^^^^^")
      )
      
    
-   ##  print(nodeLocations())
+
     leaflet(both) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
        addProviderTiles(providers$CartoDB.Positron, group = "Default Maptile") %>% 
@@ -1729,8 +1705,29 @@ print("^^^^^^^^^^^")
     })
  
    getParamData <- function(loc, param){
+     req(input$TimeFrame)
+     
+     if(input$TimeFrame == "Current"){
+       cur_date <- Sys.Date()
+       to_date <- Sys.Date()-days(1)
+       
+     }else if(input$TimeFrame == "24 Hours"){
+       cur_date <- Sys.Date()
+       to_date <- Sys.Date() - days(1)
+       
+     }else if(input$TimeFrame == "7 Days"){
+       cur_date <- Sys.Date()
+       to_date <- Sys.Date() - days(7)
+       
+     }
+     
      result = tryCatch({
-       aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc, parameter = param)
+       dt <- aq_measurements(country="US", city="Chicago-Naperville-Joliet",date_from = toString(to_date), date_to = toString(cur_date), location=loc, parameter = param)
+       if(input$TimeFrame == "Current"){
+         dt <- tail(dt, 4)
+
+       }
+       dt
      }, 
      error=function(cond) {
        
@@ -1761,10 +1758,6 @@ print("^^^^^^^^^^^")
          my_address <- "No Address Provided"
        }
        else {my_address <- toString(dt_loc$address)}
-       
-       
-       #print(my_address)
-       
        nameN<-toString(p$id)
        nameN2<- paste("<font size='6' color=\"#4286f4\"><b>", "NODE ID:", nameN,  "<BR>", "NODE ADDRESS:",my_address, sep = " ")
        nameN2
@@ -1791,9 +1784,8 @@ print("^^^^^^^^^^^")
          req(O3_AQ_IsSelected)
          req(CO_AQ_IsSelected)
          req(BC_AQ_IsSelected)
-         print("here")
+
          if(PM25_AQ_IsSelected() == TRUE){
-           print("here")
            pm25_data_ <- getParamData(p$id, "pm25")
          }else{
            pm25_data_ = list()
@@ -1806,7 +1798,6 @@ print("^^^^^^^^^^^")
          }
          if(SO2_AQ_IsSelected()){
            so2_data_ <- getParamData(p$id, "so2")
-           print("here")
          }
          else{
            so2_data_ = list()
@@ -1922,21 +1913,6 @@ print("^^^^^^^^^^^")
        req(intensity_IsSelected)
        req(input$units)
        req(input$TimeFrame)
-       # 
-       # day = 0
-       # hour = 0
-       # 
-       # if(input$TimeFrame == "Current"){
-       #   day = 0
-       #   hour = 1
-       # }else if(input$TimeFrame == "24 Hours"){
-       #  ## print(input$TimeFrame)
-       #   day = 1
-       #   hour = 0
-       # }else if(input$TimeFrame == "7 Days"){
-       #   day = 7
-       #   hour = 0
-       # }
        
        day = 0
        hour = 0
@@ -1945,9 +1921,7 @@ print("^^^^^^^^^^^")
        if(input$TimeFrame == "Current"){
          day = 0
          hour = 1
-         #skip = 4
        }else if(input$TimeFrame == "24 Hours"){
-         ## print(input$TimeFrame)
          day = 1
          hour = 0
          skip = 49
@@ -1956,26 +1930,6 @@ print("^^^^^^^^^^^")
          hour = 0
          skip = 149
        }
-       
-       # location_list <- list("ALSIP", "BRAIDWD", "CARY", "CHIWAUKEE", "CHI_COM", "CHI_SWFP", "CHI_TAFT", "CICERO", "DISPLNS", "ELGIN", "NORTHBRK", "SCHILPRK", "EVANSTON", "LISLE","Ogden Dunes", "Gary-IITRI", "East Chicago Post Of", "Hammond-141st St" , "LEMONT" ,  "ZION" )
-       # 
-       # if(is.element(p$id, location_list) ){
-       #   output$node_data <- renderTable({
-       #     aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=p$id)
-       #   })
-       # 
-       #   output$node_data <- renderPlot({
-       # 
-       #     pm25_data <- aq_measurements(country="US", city="Chicago-Naperville-Joliet", location=loc, parameter="pm25")
-       # 
-       #     myplot <- ggplot() +
-       #       geom_line(data=pm25_data , aes(timestamp, value, group=1, color="NO2"))
-       # 
-       #   })
-       # 
-       #   print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-       # }
-       # 
        
        
        no2_data <- getData(p$id, day,hour, no2_path)
@@ -2062,83 +2016,6 @@ print("^^^^^^^^^^^")
          myplot
        }
        
-       
-       # output$node_DS_data <- renderPlot({
-       #   
-       # })
-       # print(getForecastData(p$lat, p$lng, day, hour))
-       # output$node_DS_table_data <- DT::renderDataTable(
-       # 
-       #     DT::datatable({ 
-       #       getForecastData(p$lat, p$lng, day, hour)
-       #     },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
-       #       
-       #    
-       #  )
-       
-       
-       # if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
-       #   stop(paste("No data avaliavle for node: "),input$node1Input)
-       # }
-       # else{
-       #   if(length(no2_data) > 0){
-       #    no2_data $timestamp <- as.POSIXct(no2_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- ggplot() + geom_line(data=no2_data , aes(timestamp, value, group=1, color="NO2")) 
-       #   }
-       #   if(length(ozone_data) > 0){
-       #     ozone_data $timestamp <- as.POSIXct(ozone_data $timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- ggplot() + geom_line(data=ozone_data , aes(timestamp, value, group=1, color="NO2")) 
-       #   }
-       #   if(length(co_data) > 0 ){
-       #     co_data$timestamp <- as.POSIXct(co_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=co_data, aes(timestamp, value, group=1, color="CO"))
-       #   }
-       #   if(length(h2s_data) > 0){
-       #     h2s_data$timestamp <- as.POSIXct(h2s_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=h2s_data, aes(timestamp, value, group=1, color="H2S"))
-       #   }
-       #   if(length(so2_data) > 0){
-       #     so2_data$timestamp <- as.POSIXct(so2_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=so2_data, aes(timestamp, value, group=1, color="SO2"))
-       #   }
-       #   if(length(pm10_data) > 0){
-       #     pm10_data$timestamp <- as.POSIXct(pm10_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=pm10_data, aes(timestamp, value, group=1, color="PM10"))
-       #   }
-       #   if(length(pm25_data) > 0){
-       #     pm25_data$timestamp <- as.POSIXct(pm25_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=pm25_data, aes(timestamp, value, group=1, color="PM10"))
-       #   }
-       #   
-       #   if(input$units == "met"){
-       #     if(length(temperature_data) > 0){
-       #     temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, value, group=1, color="Temperature"))
-       #     }
-       #   }
-       #   else if(input$units == "imp"){
-       #     if(length(temperature_data) > 0){
-       #       temperature_data$TempM <- temperature_data[,'value']*9/5+32
-       #       temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #       myplot <- myplot + geom_line(data=temperature_data, aes(timestamp, TempM, group=1, color="Temperature"))
-       #     }
-       #   }
-       #   
-       #   
-       #   if(length(humidity_data) > 0){
-       #     humidity_data$timestamp <- as.POSIXct(humidity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=humidity_data, aes(timestamp, value, group=1, color="Humidity"))
-       #   }
-       #   if(length(intensity_data) > 0){
-       #     intensity_data$timestamp <- as.POSIXct(intensity_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
-       #     myplot <- myplot + geom_line(data=intensity_data, aes(timestamp, value, group=1, color="Intensity"))
-       #   }
-       #   
-       #   
-       #   myplot <- myplot + geom_point() + scale_colour_manual(values=c("red", "green", "blue", "purple", "orange", "yellow", "grey"))
-       #   myplot
-       # }
-
      })
      
     
@@ -2166,9 +2043,7 @@ print("^^^^^^^^^^^")
          if(input$TimeFrame == "Current"){
            day = 0
            hour = 1
-           #skip = 4
          }else if(input$TimeFrame == "24 Hours"){
-           ## print(input$TimeFrame)
            day = 1
            hour = 0
            skip = 49
