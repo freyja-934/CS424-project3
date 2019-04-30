@@ -2241,8 +2241,10 @@ server <- function(input, output,session) {
            else if(input$units == "imp"){
              if(length(temperature_data) > 0){
                temperature_data$TempM <- temperature_data[,'value']*9/5+32
+               View(temperature_data)
                temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
                temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
+               
              }
            }
            
@@ -2256,8 +2258,15 @@ server <- function(input, output,session) {
              intensity_data<- intensity_data[c(rep(FALSE,skip),TRUE), ]
            }
            
+           if(input$units == "imp" & length(temperature_data) > 0){
+             tmp_table <- select(temperature_data, 'node_vsn', 'sensor_path', 'timestamp')
+             tmp_table$value <- temperature_data$TempM
+             mytable <- rbind(no2_data,ozone_data,co_data,h2s_data,so2_data,pm10_data,pm25_data,tmp_table,humidity_data,intensity_data)
+           }
+           else{
+             mytable <- rbind(no2_data,ozone_data,co_data,h2s_data,so2_data,pm10_data,pm25_data,temperature_data,humidity_data,intensity_data)
+           }
            
-           mytable <- rbind(no2_data,ozone_data,co_data,h2s_data,so2_data,pm10_data,pm25_data,temperature_data,humidity_data,intensity_data)
            mytable
          }
          
