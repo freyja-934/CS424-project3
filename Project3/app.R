@@ -2241,7 +2241,7 @@ server <- function(input, output,session) {
            else if(input$units == "imp"){
              if(length(temperature_data) > 0){
                temperature_data$TempM <- temperature_data[,'value']*9/5+32
-               View(temperature_data)
+             
                temperature_data$timestamp <- as.POSIXct(temperature_data$timestamp, tz="UTC", "%Y-%m-%dT%H:%M")
                temperature_data<- temperature_data[c(rep(FALSE,skip),TRUE), ]
                
