@@ -1670,7 +1670,17 @@ server <- function(input, output,session) {
     #res <- get_current_forecast(41.870, -87.647)
    # res2 <- aq_latest(country = "US", city = "Chicago-Naperville-Joliet")
 
-    
+    observe({
+      autoInvalidate()
+      output$title2 <- renderText({})
+      output$node_data <- renderPlot({})
+      output$node_DS_data <- renderPlot({})
+      output$node_DS_table_data <- DT::renderDataTable(DT::datatable({ }))
+      output$node_table_data <- DT::renderDataTable(DT::datatable({ }))
+
+      output$node_AQ_table_data <- DT::renderDataTable({ })
+      output$node_AQ_data <- renderPlot({})
+    })
     
    
    output$mymap <- renderLeaflet({
@@ -1699,14 +1709,7 @@ server <- function(input, output,session) {
      )
      
    
-     output$title2 <- renderText({})
-     output$node_data <- renderPlot({})
-     output$node_DS_data <- renderPlot({})
-     output$node_DS_table_data <- DT::renderDataTable(DT::datatable({ }))
-     output$node_table_data <- DT::renderDataTable(DT::datatable({ }))
-     
-     output$node_AQ_table_data <- DT::renderDataTable({ })
-     output$node_AQ_data <- renderPlot({})
+    
      
     leaflet(both) %>%
        addTiles() %>%  # Add default OpenStreetMap map tiles
@@ -2027,7 +2030,7 @@ server <- function(input, output,session) {
            res2<-getDSData_(day, hour, p$lng, p$lat)
            res2 <- select(res2,-'lat')
            res2 <- select(res2,-'lon')
-
+          
          },options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE ))
          
        })
@@ -2197,7 +2200,7 @@ server <- function(input, output,session) {
          intensity_data <- getData(p$id, day,hour, intensity_path)
          
          if(length(no2_data) == 0 & length(ozone_data)== 0 & length(co_data)== 0 & length(h2s_data)== 0 & length(so2_data)== 0 & length(pm10_data)== 0 & length(pm25_data)== 0 &length(humidity_data)== 0 & length(intensity_data)== 0 &length(temperature_data)== 0 ){
-           ggplot()
+           
          }
          else{
            if(length(no2_data) > 0){
